@@ -1,17 +1,24 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
-import os
 
-TOKEN = os.getenv("8779001843:AAGpUZ8Ix0VVTK5UmNNF1_3A2Gerbqqn-hc")
+TOKEN = "8779001843:AAGOpliQVvEoNXdSJYHTp-FLUldD4iQ1Src"
+
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "💕 Bienvenid@ 💕\n\n"
-        "Usa /catalogo para ver todos mis planes ✨"
-    )
+    mensaje = """
+💕 Bienvenid@ 💕
+
+Usa los siguientes comandos:
+
+/catalogo - Ver catálogo
+/vip - Información del canal VIP
+/ayuda - Contacto
+"""
+    await update.message.reply_text(mensaje)
+
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    texto = """
+    mensaje = """
 😆 CATALOGO DE MI CONTENIDO 😆
 
 ⭐️ $6 x 5 fotos y 5 videos
@@ -20,27 +27,43 @@ async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 💦 $13 Chat creativo con fotos
 
-✨ $15 Canal VIP 100 fotos 30 videos
+✨ $15 Canal VIP 100 fotos 30 videos✨
 
 🎁 Recibo Paypal / Bizum / Giftcard / Mercado Pago 🎁
 """
-    await update.message.reply_text(texto)
+    await update.message.reply_text(mensaje)
+
 
 async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "✨ El canal VIP incluye 100 fotos y 30 videos ✨"
-    )
+    mensaje = """
+✨ CANAL VIP ✨
+
+Incluye:
+💕 100 fotos
+💦 30 videos
+
+Para comprar, escríbeme o usa /catalogo
+"""
+    await update.message.reply_text(mensaje)
+
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "💕 Escríbeme si tienes alguna duda 💕"
+        "💕 Si tienes dudas, escríbeme directamente."
     )
 
-app = Application.builder().token(TOKEN).build()
 
-app.add_handler(CommandHandler("start", start))
-app.add_handler(CommandHandler("catalogo", catalogo))
-app.add_handler(CommandHandler("vip", vip))
-app.add_handler(CommandHandler("ayuda", ayuda))
+def main():
+    app = Application.builder().token(TOKEN).build()
 
-app.run_polling()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CommandHandler("catalogo", catalogo))
+    app.add_handler(CommandHandler("vip", vip))
+    app.add_handler(CommandHandler("ayuda", ayuda))
+
+    print("Bot iniciado...")
+    app.run_polling()
+
+
+if __name__ == "__main__":
+    main()
