@@ -1,122 +1,85 @@
-from telegram import Update, MessageEntity
+from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-TOKEN = "8779001843:AAHHL0RSbotUHUClEQt9BC7kor8C5TWqu7w"
+TOKEN = "TU_TOKEN_AQUI"
 
-# ==================================
 
-# EMOJIS PERSONALIZADOS
-
-# ==================================
-
-EMOJIS = [
-("😆", "5958408954374525870"),
-("⭐️", "5958272022227194442"),
-("💕", "5958529900653579813"),
-("💦", "5958354614448296239"),
-("✨", "5960700632959553580"),
-("🎁", "5958423711882153648"),
-]
-
-def utf16_len(text):
-return len(text.encode("utf-16-le")) // 2
-
-EMOJIS_TEXTO = "".join(e[0] for e in EMOJIS)
-
-EMOJIS_ENTIDADES = []
-
-offset = 0
-
-for emoji, emoji_id in EMOJIS:
-length = utf16_len(emoji)
-
-```
-EMOJIS_ENTIDADES.append(
-    MessageEntity(
-        type="custom_emoji",
-        offset=offset,
-        length=length,
-        custom_emoji_id=emoji_id,
-    )
-)
-
-offset += length
-```
-
-# ==================================
-
-# FUNCIONES
-
-# ==================================
-
-async def enviar_emojis(update: Update):
-await update.message.reply_text(
-text=EMOJIS_TEXTO,
-entities=EMOJIS_ENTIDADES
-)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-await enviar_emojis(update)
 
 ```
-await update.message.reply_text(
-    """Bienvenid@
+mensaje = """
 ```
+
+Bienvenid@ a mi tienda de contenido
 
 Usa los siguientes comandos:
 
 /catalogo - Ver catálogo
-/vip - Información VIP
-/ayuda - Contacto
+/vip - Información del canal VIP
+/ayuda - Contacta personalmente conmigo
 """
-)
+
+```
+await update.message.reply_text(mensaje)
+```
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-await enviar_emojis(update)
+
 
 ```
-await update.message.reply_text(
-    """CATÁLOGO
+mensaje = """
 ```
 
-⭐ $6
-💕 $9
-💦 $13
-✨ $15
+CATÁLOGO DE MI CONTENIDO
 
-🎁 Paypal / Bizum / Giftcard / Mercado Pago
+⭐ $6 por 10 fotos y 5 videos ⭐
+
+💕 $9 por 25 fotos y 15 videos 💕
+
+💦 $13 por Chat Hot (Disponible solo si estoy conectada) 💦
+
+✨ $15 Canal VIP 100 fotos y 30 videos PARA SIEMPRE ✨
+
+🎁 Recibo Paypal / Bizum / Giftcard / Mercado Pago 🎁
 """
-)
+
+```
+await update.message.reply_text(mensaje)
+```
 
 async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
-await enviar_emojis(update)
+
 
 ```
-await update.message.reply_text(
-    """✨ CANAL VIP ✨
+mensaje = """
 ```
 
-💕 100
-💦 30
+✨ CANAL VIP ✨
 
-Usa /catalogo para más información.
+Incluye:
+
+💎 100 Fotos y 30 videos sola y follando 💎
+
+✨LINK PARA ENTRAR: https://t.me/+qygd9d_bqRo2ZmQx ✨
+
+🎁 Seras aceptado al momento de pagar 🎁
+
+Para comprar, escríbeme directamente @Sofi_ly19
 """
-)
+
+```
+await update.message.reply_text(mensaje)
+```
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-await enviar_emojis(update)
+
 
 ```
 await update.message.reply_text(
-    "💕 Si tienes dudas, escríbeme directamente."
+    "💕 Si tienes dudas, escríbeme directamente @Sofi_ly19."
 )
 ```
-
-# ==================================
-
-# MAIN
-
-# ==================================
 
 def main():
 app = Application.builder().token(TOKEN).build()
