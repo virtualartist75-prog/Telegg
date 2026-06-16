@@ -7,7 +7,7 @@ ContextTypes,
 filters
 )
 
-TOKEN = "TU_TOKEN_AQUI"
+TOKEN = "8779001843:AAHHL0RSbotUHUClEQt9BC7kor8C5TWqu7w"
 
 # Tu ID de Telegram
 
