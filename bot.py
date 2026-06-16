@@ -11,9 +11,6 @@ TOKEN = "TU_TOKEN_AQUI"
 
 ADMIN_ID = 7078845937
 
-=========================
-COMANDOS PUBLICOS
-=========================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
@@ -78,9 +75,7 @@ usuario = update.effective_user
 await update.message.reply_text(
     f"Tu ID es: {usuario.id}"
 )
-=========================
-RECEPCION DE COMPROBANTES
-=========================
+
 
 async def recibir_comprobante(
 update: Update,
@@ -112,9 +107,7 @@ await context.bot.forward_message(
 await update.message.reply_text(
     "✅ Comprobante recibido. Será revisado manualmente."
 )
-=========================
-COMANDOS DE ADMINISTRADOR
-=========================
+
 
 async def aprobar(
 update: Update,
@@ -186,9 +179,7 @@ except Exception as e:
     await update.message.reply_text(
         f"Error: {e}"
     )
-=========================
-MAIN
-=========================
+
 
 def main():
 
