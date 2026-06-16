@@ -1,49 +1,66 @@
 from telegram import Update, MessageEntity
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-TOKEN = "8779001843:AAGOpliQVvEoNXdSJYHTp-FLUldD4iQ1Src"
+TOKEN = "8779001843:AAHHL0RSbotUHUClEQt9BC7kor8C5TWqu7w"
+
+# ==========================
+# EMOJIS PERSONALIZADOS
+# ==========================
 
 EMOJIS_TEXTO = "😆⭐💕💦✨🎁"
+
+EMOJIS_IDS = [
+    "5958408954374525870",  # 😆
+    "5958272022227194442",  # ⭐
+    "5958529900653579813",  # 💕
+    "5958354614448296239",  # 💦
+    "5960700632959553580",  # ✨
+    "5958423711882153648",  # 🎁
+]
 
 EMOJIS_ENTIDADES = [
     MessageEntity(
         type="custom_emoji",
         offset=0,
         length=2,
-        custom_emoji_id="5958408954374525870"
+        custom_emoji_id=EMOJIS_IDS[0]
     ),
     MessageEntity(
         type="custom_emoji",
         offset=2,
         length=2,
-        custom_emoji_id="5958272022227194442"
+        custom_emoji_id=EMOJIS_IDS[1]
     ),
     MessageEntity(
         type="custom_emoji",
         offset=4,
         length=2,
-        custom_emoji_id="5958529900653579813"
+        custom_emoji_id=EMOJIS_IDS[2]
     ),
     MessageEntity(
         type="custom_emoji",
         offset=6,
         length=2,
-        custom_emoji_id="5958354614448296239"
+        custom_emoji_id=EMOJIS_IDS[3]
     ),
     MessageEntity(
         type="custom_emoji",
         offset=8,
         length=1,
-        custom_emoji_id="5960700632959553580"
+        custom_emoji_id=EMOJIS_IDS[4]
     ),
     MessageEntity(
         type="custom_emoji",
         offset=9,
         length=2,
-        custom_emoji_id="5958423711882153648"
-    )
+        custom_emoji_id=EMOJIS_IDS[5]
+    ),
 ]
 
+
+# ==========================
+# FUNCIONES
+# ==========================
 
 async def enviar_emojis(update: Update):
     await update.message.reply_text(
@@ -55,7 +72,8 @@ async def enviar_emojis(update: Update):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await enviar_emojis(update)
 
-    mensaje = """
+    await update.message.reply_text(
+        """
 Bienvenid@
 
 Usa los siguientes comandos:
@@ -64,44 +82,45 @@ Usa los siguientes comandos:
 /vip - Información del canal VIP
 /ayuda - Contacto
 """
-
-    await update.message.reply_text(mensaje)
+    )
 
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await enviar_emojis(update)
 
-    mensaje = """
+    await update.message.reply_text(
+        """
 CATALOGO DE MI CONTENIDO
 
-⭐ $6 x 5 fotos y 5 videos
+⭐ $6
 
-💕 $9 x 15 fotos y 10 videos
+💕 $9
 
-💦 $13 Chat creativo con fotos
+💦 $13
 
-✨ $15 Canal VIP 100 fotos 30 videos
+✨ $15
 
 🎁 Recibo Paypal / Bizum / Giftcard / Mercado Pago
 """
-
-    await update.message.reply_text(mensaje)
+    )
 
 
 async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await enviar_emojis(update)
 
-    mensaje = """
+    await update.message.reply_text(
+        """
 ✨ CANAL VIP ✨
 
 Incluye:
-💕 100 fotos
-💦 30 videos
+
+💕 100
+
+💦 30
 
 Para comprar, escríbeme o usa /catalogo
 """
-
-    await update.message.reply_text(mensaje)
+    )
 
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -111,6 +130,10 @@ async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "💕 Si tienes dudas, escríbeme directamente."
     )
 
+
+# ==========================
+# MAIN
+# ==========================
 
 def main():
     app = Application.builder().token(TOKEN).build()
