@@ -23,7 +23,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 mensaje = """
-```
+
 
 Bienvenid@
 
@@ -35,15 +35,15 @@ Usa los siguientes comandos:
 /id - Ver tu ID
 """
 
-```
+
 await update.message.reply_text(mensaje)
-```
+
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 mensaje = """
-```
+
 
 CATÁLOGO
 
@@ -66,7 +66,7 @@ async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 mensaje = """
-```
+
 
 VIP
 
