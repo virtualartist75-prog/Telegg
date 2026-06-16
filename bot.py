@@ -64,8 +64,8 @@ await update.message.reply_text(mensaje)
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-await update.message.reply_text(
-    "Si tienes dudas, contacta al administrador."
+    await update.message.reply_text(
+        "Si tienes dudas, contacta al administrador."
 )
 
 async def mi_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
