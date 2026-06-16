@@ -1,11 +1,55 @@
-from telegram import Update
+from telegram import Update, MessageEntity
 from telegram.ext import Application, CommandHandler, ContextTypes
 
 TOKEN = "8779001843:AAGOpliQVvEoNXdSJYHTp-FLUldD4iQ1Src"
 
+EMOJIS_TEXTO = "😆⭐💕💦✨🎁"
+
+EMOJIS_ENTIDADES = [
+    MessageEntity(
+        type="custom_emoji",
+        offset=0,
+        length=2,
+        custom_emoji_id="5958408954374525870"
+    ),
+    MessageEntity(
+        type="custom_emoji",
+        offset=2,
+        length=2,
+        custom_emoji_id="5958272022227194442"
+    ),
+    MessageEntity(
+        type="custom_emoji",
+        offset=4,
+        length=2,
+        custom_emoji_id="5958529900653579813"
+    ),
+    MessageEntity(
+        type="custom_emoji",
+        offset=6,
+        length=2,
+        custom_emoji_id="5958354614448296239"
+    ),
+    MessageEntity(
+        type="custom_emoji",
+        offset=8,
+        length=1,
+        custom_emoji_id="5960700632959553580"
+    ),
+    MessageEntity(
+        type="custom_emoji",
+        offset=9,
+        length=2,
+        custom_emoji_id="5958423711882153648"
+    )
+]
+
 
 async def enviar_emojis(update: Update):
-    await update.message.reply_text("😆⭐💕💦✨🎁")
+    await update.message.reply_text(
+        text=EMOJIS_TEXTO,
+        entities=EMOJIS_ENTIDADES
+    )
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -30,35 +74,39 @@ async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
 CATALOGO DE MI CONTENIDO
 
-⭐ Opción 1
+⭐ $6 x 5 fotos y 5 videos
 
-💕 Opción 2
+💕 $9 x 15 fotos y 10 videos
 
-💦 Opción 3
+💦 $13 Chat creativo con fotos
 
-✨ Opción 4
+✨ $15 Canal VIP 100 fotos 30 videos
 
-🎁 Métodos de pago
+🎁 Recibo Paypal / Bizum / Giftcard / Mercado Pago
 """
 
     await update.message.reply_text(mensaje)
 
 
 async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await enviar_emojis(update)
+
     mensaje = """
 ✨ CANAL VIP ✨
 
 Incluye:
-💕 Fotos
-💦 Videos
+💕 100 fotos
+💦 30 videos
 
-Para más información usa /catalogo
+Para comprar, escríbeme o usa /catalogo
 """
 
     await update.message.reply_text(mensaje)
 
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await enviar_emojis(update)
+
     await update.message.reply_text(
         "💕 Si tienes dudas, escríbeme directamente."
     )
