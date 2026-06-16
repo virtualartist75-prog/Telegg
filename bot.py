@@ -1,7 +1,7 @@
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-TOKEN = "TU_TOKEN_AQUI"
+TOKEN = "8779001843:AAGOpliQVvEoNXdSJYHTp-FLUldD4iQ1Src"
 
 
 async def enviar_emojis(update: Update):
