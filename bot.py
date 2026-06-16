@@ -7,9 +7,7 @@ ContextTypes,
 filters
 )
 
-TOKEN = "8779001843:AAHHL0RSbotUHUClEQt9BC7kor8C5TWqu7w"
-
-# Tu ID de Telegram
+TOKEN = "8779001843:AAF2JSDzoMLxj8jtcUfbY72-hMqKfiINq2c"
 
 ADMIN_ID = 7078845937
 
@@ -21,9 +19,9 @@ ADMIN_ID = 7078845937
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-
+```
 mensaje = """
-
+```
 
 Bienvenid@
 
@@ -35,15 +33,15 @@ Usa los siguientes comandos:
 /id - Ver tu ID
 """
 
-
+```
 await update.message.reply_text(mensaje)
-
+```
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-
+```
 mensaje = """
-
+```
 
 CATÁLOGO
 
@@ -58,15 +56,15 @@ CATÁLOGO
 🎁 Pago mediante PayPal
 """
 
-
+```
 await update.message.reply_text(mensaje)
-
+```
 
 async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-
+```
 mensaje = """
-
+```
 
 VIP
 
@@ -77,27 +75,27 @@ VIP
 Cuando se revise tu pago recibirás una respuesta.
 """
 
-
+```
 await update.message.reply_text(mensaje)
-
+```
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-
+```
 await update.message.reply_text(
     "Si tienes dudas, contacta al administrador."
 )
-
+```
 
 async def mi_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-
+```
 usuario = update.effective_user
 
 await update.message.reply_text(
     f"Tu ID es: {usuario.id}"
 )
-
+```
 
 # =========================
 
@@ -110,7 +108,7 @@ update: Update,
 context: ContextTypes.DEFAULT_TYPE
 ):
 
-
+```
 usuario = update.effective_user
 
 texto_admin = (
@@ -136,7 +134,7 @@ await context.bot.forward_message(
 await update.message.reply_text(
     "✅ Comprobante recibido. Será revisado manualmente."
 )
-
+```
 
 # =========================
 
@@ -149,7 +147,7 @@ update: Update,
 context: ContextTypes.DEFAULT_TYPE
 ):
 
-
+```
 if update.effective_user.id != ADMIN_ID:
     return
 
@@ -158,7 +156,6 @@ if len(context.args) != 1:
     await update.message.reply_text(
         "Uso: /aprobar ID_USUARIO"
     )
-
     return
 
 usuario_id = int(context.args[0])
@@ -182,14 +179,14 @@ except Exception as e:
     await update.message.reply_text(
         f"Error: {e}"
     )
-
+```
 
 async def rechazar(
 update: Update,
 context: ContextTypes.DEFAULT_TYPE
 ):
 
-
+```
 if update.effective_user.id != ADMIN_ID:
     return
 
@@ -198,7 +195,6 @@ if len(context.args) != 1:
     await update.message.reply_text(
         "Uso: /rechazar ID_USUARIO"
     )
-
     return
 
 usuario_id = int(context.args[0])
@@ -207,9 +203,7 @@ try:
 
     await context.bot.send_message(
         chat_id=usuario_id,
-        text=(
-            "❌ No fue posible verificar el pago."
-        )
+        text="❌ No fue posible verificar el pago."
     )
 
     await update.message.reply_text(
@@ -221,7 +215,7 @@ except Exception as e:
     await update.message.reply_text(
         f"Error: {e}"
     )
-
+```
 
 # =========================
 
@@ -231,7 +225,7 @@ except Exception as e:
 
 def main():
 
-
+```
 app = Application.builder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
@@ -252,7 +246,7 @@ app.add_handler(
 
 print("Bot iniciado...")
 app.run_polling()
-
+```
 
 if **name** == "**main**":
 main()
