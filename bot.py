@@ -7,7 +7,7 @@ from telegram.ext import (
     filters
 )
 
-TOKEN = "TU_TOKEN_AQUI"
+TOKEN = "8779001843:AAF2JSDzoMLxj8jtcUfbY72-hMqKfiINq2c"
 ADMIN_ID = 7078845937
 
 
