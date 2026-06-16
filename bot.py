@@ -7,21 +7,17 @@ ContextTypes,
 filters
 )
 
-TOKEN = "8779001843:AAF2JSDzoMLxj8jtcUfbY72-hMqKfiINq2c"
+TOKEN = "TU_TOKEN_AQUI"
 
 ADMIN_ID = 7078845937
 
-# =========================
-
-# COMANDOS PUBLICOS
-
-# =========================
+=========================
+COMANDOS PUBLICOS
+=========================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-```
 mensaje = """
-```
 
 Bienvenid@
 
@@ -33,15 +29,11 @@ Usa los siguientes comandos:
 /id - Ver tu ID
 """
 
-```
 await update.message.reply_text(mensaje)
-```
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-```
 mensaje = """
-```
 
 CATÁLOGO
 
@@ -56,59 +48,45 @@ CATÁLOGO
 🎁 Pago mediante PayPal
 """
 
-```
 await update.message.reply_text(mensaje)
-```
 
 async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-```
 mensaje = """
-```
 
 VIP
 
-1. Realiza el pago.
-2. Envía tu comprobante.
-3. Espera la revisión.
+Realiza el pago.
+Envía tu comprobante.
+Espera la revisión.
 
 Cuando se revise tu pago recibirás una respuesta.
 """
 
-```
 await update.message.reply_text(mensaje)
-```
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-```
 await update.message.reply_text(
     "Si tienes dudas, contacta al administrador."
 )
-```
 
 async def mi_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-```
 usuario = update.effective_user
 
 await update.message.reply_text(
     f"Tu ID es: {usuario.id}"
 )
-```
-
-# =========================
-
-# RECEPCION DE COMPROBANTES
-
-# =========================
+=========================
+RECEPCION DE COMPROBANTES
+=========================
 
 async def recibir_comprobante(
 update: Update,
 context: ContextTypes.DEFAULT_TYPE
 ):
 
-```
 usuario = update.effective_user
 
 texto_admin = (
@@ -134,20 +112,15 @@ await context.bot.forward_message(
 await update.message.reply_text(
     "✅ Comprobante recibido. Será revisado manualmente."
 )
-```
-
-# =========================
-
-# COMANDOS DE ADMINISTRADOR
-
-# =========================
+=========================
+COMANDOS DE ADMINISTRADOR
+=========================
 
 async def aprobar(
 update: Update,
 context: ContextTypes.DEFAULT_TYPE
 ):
 
-```
 if update.effective_user.id != ADMIN_ID:
     return
 
@@ -179,14 +152,12 @@ except Exception as e:
     await update.message.reply_text(
         f"Error: {e}"
     )
-```
 
 async def rechazar(
 update: Update,
 context: ContextTypes.DEFAULT_TYPE
 ):
 
-```
 if update.effective_user.id != ADMIN_ID:
     return
 
@@ -215,17 +186,12 @@ except Exception as e:
     await update.message.reply_text(
         f"Error: {e}"
     )
-```
-
-# =========================
-
-# MAIN
-
-# =========================
+=========================
+MAIN
+=========================
 
 def main():
 
-```
 app = Application.builder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
@@ -246,7 +212,6 @@ app.add_handler(
 
 print("Bot iniciado...")
 app.run_polling()
-```
 
-if **name** == "**main**":
+if name == "main":
 main()
