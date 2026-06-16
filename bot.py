@@ -21,7 +21,7 @@ ADMIN_ID = 7078845937
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-```
+
 mensaje = """
 ```
 
@@ -41,7 +41,7 @@ await update.message.reply_text(mensaje)
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-```
+
 mensaje = """
 ```
 
@@ -58,13 +58,13 @@ CATÁLOGO
 🎁 Pago mediante PayPal
 """
 
-```
+
 await update.message.reply_text(mensaje)
-```
+
 
 async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-```
+
 mensaje = """
 ```
 
@@ -77,27 +77,27 @@ VIP
 Cuando se revise tu pago recibirás una respuesta.
 """
 
-```
+
 await update.message.reply_text(mensaje)
-```
+
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-```
+
 await update.message.reply_text(
     "Si tienes dudas, contacta al administrador."
 )
-```
+
 
 async def mi_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-```
+
 usuario = update.effective_user
 
 await update.message.reply_text(
     f"Tu ID es: {usuario.id}"
 )
-```
+
 
 # =========================
 
@@ -110,7 +110,7 @@ update: Update,
 context: ContextTypes.DEFAULT_TYPE
 ):
 
-```
+
 usuario = update.effective_user
 
 texto_admin = (
@@ -136,7 +136,7 @@ await context.bot.forward_message(
 await update.message.reply_text(
     "✅ Comprobante recibido. Será revisado manualmente."
 )
-```
+
 
 # =========================
 
@@ -149,7 +149,7 @@ update: Update,
 context: ContextTypes.DEFAULT_TYPE
 ):
 
-```
+
 if update.effective_user.id != ADMIN_ID:
     return
 
@@ -182,14 +182,14 @@ except Exception as e:
     await update.message.reply_text(
         f"Error: {e}"
     )
-```
+
 
 async def rechazar(
 update: Update,
 context: ContextTypes.DEFAULT_TYPE
 ):
 
-```
+
 if update.effective_user.id != ADMIN_ID:
     return
 
@@ -221,7 +221,7 @@ except Exception as e:
     await update.message.reply_text(
         f"Error: {e}"
     )
-```
+
 
 # =========================
 
@@ -231,7 +231,7 @@ except Exception as e:
 
 def main():
 
-```
+
 app = Application.builder().token(TOKEN).build()
 
 app.add_handler(CommandHandler("start", start))
@@ -252,7 +252,7 @@ app.add_handler(
 
 print("Bot iniciado...")
 app.run_polling()
-```
+
 
 if **name** == "**main**":
 main()
