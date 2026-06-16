@@ -14,7 +14,7 @@ ADMIN_ID = 7078845937
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-mensaje = """
+    mensaje = """
 
 Bienvenid@
 
@@ -30,7 +30,7 @@ await update.message.reply_text(mensaje)
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-mensaje = """
+    mensaje = """
 
 CATÁLOGO
 
@@ -49,7 +49,7 @@ await update.message.reply_text(mensaje)
 
 async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-mensaje = """
+    mensaje = """
 
 VIP
 
@@ -70,7 +70,7 @@ await update.message.reply_text(
 
 async def mi_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-usuario = update.effective_user
+    usuario = update.effective_user
 
 await update.message.reply_text(
     f"Tu ID es: {usuario.id}"
