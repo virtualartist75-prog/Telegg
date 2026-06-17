@@ -15,7 +15,7 @@ from telegram.ext import (
     filters
 )
 
-# Token desde variable de entorno (seguro en Render)
+# Token seguro desde variable de entorno
 TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 7078845937
 
@@ -28,14 +28,9 @@ GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/cont
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    mensaje = """
-Bienvenid@
-
-/catalogo - Ver catálogo
-/vip - Información VIP
-/ayuda - Contacto
-"""
-    await update.message.reply_text(mensaje)
+    await update.message.reply_text(
+        "Bienvenid@\n\n/catalogo - Ver catálogo\n/vip - Información VIP\n/ayuda - Contacto"
+    )
 
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -82,15 +77,11 @@ async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, pr
                 archivos = json.loads(resp.read().decode())
 
             total = len(archivos)
-            count = 0
-
-            for item in archivos:
+            for idx, item in enumerate(archivos, start=1):
                 enlace = item["download_url"]
                 extension = item["name"].lower()
-                count += 1
 
-                # Mensaje de progreso sin mostrar nombres
-                await context.bot.send_message(chat_id=usuario_id, text=f"📦 Enviando archivo {count}/{total}...")
+                await context.bot.send_message(chat_id=usuario_id, text=f"📦 Enviando archivo {idx}/{total}...")
 
                 try:
                     with urllib.request.urlopen(enlace, timeout=30) as f:
@@ -122,17 +113,11 @@ async def recibir_comprobante(update: Update, context: ContextTypes.DEFAULT_TYPE
     usuario = update.effective_user
 
     teclado = [
-        [
-            InlineKeyboardButton("$6", callback_data=f"6:{usuario.id}"),
-            InlineKeyboardButton("$9", callback_data=f"9:{usuario.id}")
-        ],
-        [
-            InlineKeyboardButton("$13", callback_data=f"13:{usuario.id}"),
-            InlineKeyboardButton("$15", callback_data=f"15:{usuario.id}")
-        ],
-        [
-            InlineKeyboardButton("❌ Rechazar", callback_data=f"rechazar:{usuario.id}")
-        ]
+        [InlineKeyboardButton("$6", callback_data=f"6:{usuario.id}"),
+         InlineKeyboardButton("$9", callback_data=f"9:{usuario.id}")],
+        [InlineKeyboardButton("$13", callback_data=f"13:{usuario.id}"),
+         InlineKeyboardButton("$15", callback_data=f"15:{usuario.id}")],
+        [InlineKeyboardButton("❌ Rechazar", callback_data=f"rechazar:{usuario.id}")]
     ]
 
     reply_markup = InlineKeyboardMarkup(teclado)
@@ -144,18 +129,9 @@ async def recibir_comprobante(update: Update, context: ContextTypes.DEFAULT_TYPE
         f"Nombre: {usuario.first_name}"
     )
 
-    await context.bot.send_message(
-        chat_id=ADMIN_ID,
-        text=texto_admin,
-        reply_markup=reply_markup
-    )
-
-    await context.bot.forward_message(
-        chat_id=ADMIN_ID,
-        from_chat_id=update.effective_chat.id,
-        message_id=update.message.message_id
-    )
-
+    await context.bot.send_message(chat_id=ADMIN_ID, text=texto_admin, reply_markup=reply_markup)
+    await context.bot.forward_message(chat_id=ADMIN_ID, from_chat_id=update.effective_chat.id,
+                                      message_id=update.message.message_id)
     await update.message.reply_text("✅ Comprobante recibido.")
 
 
@@ -175,13 +151,8 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await query.edit_message_text("Pago rechazado.")
         return
 
-    await context.bot.send_message(
-        chat_id=usuario_id,
-        text=f"✅ Pago aprobado.\nPreparando paquete ${accion}..."
-    )
-
+    await context.bot.send_message(chat_id=usuario_id, text=f"✅ Pago aprobado.\nPreparando paquete ${accion}...")
     await enviar_paquete(context, usuario_id, accion)
-
     await query.edit_message_text(f"Paquete ${accion} enviado.")
 
 
@@ -195,7 +166,7 @@ def main():
     app.add_handler(MessageHandler(filters.PHOTO, recibir_comprobante))
     app.add_handler(CallbackQueryHandler(manejar_boton))
 
-    print("Bot iniciado...")
+    print("Bot iniciado en Render como worker...")
     app.run_polling()
 
 
