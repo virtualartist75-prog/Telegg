@@ -1,13 +1,21 @@
-from telegram import Update
+import os
+
+from telegram import (
+    Update,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup
+)
+
 from telegram.ext import (
     Application,
     CommandHandler,
     MessageHandler,
+    CallbackQueryHandler,
     ContextTypes,
     filters
 )
 
-TOKEN = "8779001843:AAF2JSDzoMLxj8jtcUfbY72-hMqKfiINq2c"
+TOKEN = "TU_TOKEN_AQUI"
 ADMIN_ID = 7078845937
 
 
@@ -15,12 +23,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
 Bienvenid@
 
-Usa los siguientes comandos:
-
 /catalogo - Ver catálogo
-/vip - Información
+/vip - Información VIP
 /ayuda - Contacto
-/id - Ver tu ID
 """
     await update.message.reply_text(mensaje)
 
@@ -29,11 +34,12 @@ async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
 CATÁLOGO
 
-⭐ Producto 1
-💕 Producto 2
-💦 Producto 3
-✨ Acceso VIP
-🎁 Pago mediante PayPal
+⭐ $6
+💕 $9
+💦 $13
+✨ $15
+
+Envía tu comprobante de pago para revisión.
 """
     await update.message.reply_text(mensaje)
 
@@ -42,37 +48,87 @@ async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
 VIP
 
-Realiza el pago.
-Envía tu comprobante.
-Espera la revisión.
-
-Cuando se revise tu pago recibirás una respuesta.
+1. Realiza el pago.
+2. Envía el comprobante.
+3. Espera la aprobación.
 """
     await update.message.reply_text(mensaje)
 
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Si tienes dudas, contacta al administrador.")
+    await update.message.reply_text("Contacta al administrador si tienes dudas.")
 
 
-async def mi_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    usuario = update.effective_user
-    await update.message.reply_text(f"Tu ID es: {usuario.id}")
+async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, precio: str):
+    carpeta = f"contenido/precio{precio}"
+
+    if not os.path.exists(carpeta):
+        await context.bot.send_message(
+            chat_id=usuario_id,
+            text="❌ El paquete no existe."
+        )
+        return
+
+    archivos = sorted(os.listdir(carpeta))
+
+    for archivo in archivos:
+        ruta = os.path.join(carpeta, archivo)
+
+        if not os.path.isfile(ruta):
+            continue
+
+        extension = archivo.lower()
+
+        try:
+            if extension.endswith((".jpg", ".jpeg", ".png", ".webp")):
+                with open(ruta, "rb") as f:
+                    await context.bot.send_photo(chat_id=usuario_id, photo=f)
+
+            elif extension.endswith((".mp4", ".mov", ".mkv")):
+                with open(ruta, "rb") as f:
+                    await context.bot.send_video(chat_id=usuario_id, video=f)
+
+            else:
+                with open(ruta, "rb") as f:
+                    await context.bot.send_document(chat_id=usuario_id, document=f)
+
+        except Exception as e:
+            print(f"Error enviando {archivo}: {e}")
+
+    await context.bot.send_message(chat_id=usuario_id, text="✅ Entrega completada.")
 
 
 async def recibir_comprobante(update: Update, context: ContextTypes.DEFAULT_TYPE):
     usuario = update.effective_user
 
+    teclado = [
+        [
+            InlineKeyboardButton("$6", callback_data=f"6:{usuario.id}"),
+            InlineKeyboardButton("$9", callback_data=f"9:{usuario.id}")
+        ],
+        [
+            InlineKeyboardButton("$13", callback_data=f"13:{usuario.id}"),
+            InlineKeyboardButton("$15", callback_data=f"15:{usuario.id}")
+        ],
+        [
+            InlineKeyboardButton("❌ Rechazar", callback_data=f"rechazar:{usuario.id}")
+        ]
+    ]
+
+    reply_markup = InlineKeyboardMarkup(teclado)
+
     texto_admin = (
         f"📥 Nuevo comprobante\n\n"
         f"ID: {usuario.id}\n"
         f"Usuario: @{usuario.username}\n"
-        f"Nombre: {usuario.first_name}\n\n"
-        f"/aprobar {usuario.id}\n"
-        f"/rechazar {usuario.id}"
+        f"Nombre: {usuario.first_name}"
     )
 
-    await context.bot.send_message(chat_id=ADMIN_ID, text=texto_admin)
+    await context.bot.send_message(
+        chat_id=ADMIN_ID,
+        text=texto_admin,
+        reply_markup=reply_markup
+    )
 
     await context.bot.forward_message(
         chat_id=ADMIN_ID,
@@ -80,47 +136,33 @@ async def recibir_comprobante(update: Update, context: ContextTypes.DEFAULT_TYPE
         message_id=update.message.message_id
     )
 
-    await update.message.reply_text("✅ Comprobante recibido. Será revisado manualmente.")
+    await update.message.reply_text("✅ Comprobante recibido.")
 
 
-async def aprobar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
+async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    if query.from_user.id != ADMIN_ID:
+        await query.answer("No autorizado", show_alert=True)
         return
 
-    if len(context.args) != 1:
-        await update.message.reply_text("Uso: /aprobar ID_USUARIO")
+    accion, usuario_id = query.data.split(":")
+    usuario_id = int(usuario_id)
+
+    if accion == "rechazar":
+        await context.bot.send_message(chat_id=usuario_id, text="❌ Pago rechazado.")
+        await query.edit_message_text("Pago rechazado.")
         return
 
-    usuario_id = int(context.args[0])
+    await context.bot.send_message(
+        chat_id=usuario_id,
+        text=f"✅ Pago aprobado.\nPreparando paquete ${accion}..."
+    )
 
-    try:
-        await context.bot.send_message(
-            chat_id=usuario_id,
-            text="✅ Pago aprobado.\n\nTu solicitud ha sido aprobada."
-        )
-        await update.message.reply_text("Usuario aprobado.")
-    except Exception as e:
-        await update.message.reply_text(f"Error: {e}")
+    await enviar_paquete(context, usuario_id, accion)
 
-
-async def rechazar(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_user.id != ADMIN_ID:
-        return
-
-    if len(context.args) != 1:
-        await update.message.reply_text("Uso: /rechazar ID_USUARIO")
-        return
-
-    usuario_id = int(context.args[0])
-
-    try:
-        await context.bot.send_message(
-            chat_id=usuario_id,
-            text="❌ No fue posible verificar el pago."
-        )
-        await update.message.reply_text("Usuario notificado.")
-    except Exception as e:
-        await update.message.reply_text(f"Error: {e}")
+    await query.edit_message_text(f"Paquete ${accion} enviado.")
 
 
 def main():
@@ -130,12 +172,8 @@ def main():
     app.add_handler(CommandHandler("catalogo", catalogo))
     app.add_handler(CommandHandler("vip", vip))
     app.add_handler(CommandHandler("ayuda", ayuda))
-    app.add_handler(CommandHandler("id", mi_id))
-
-    app.add_handler(CommandHandler("aprobar", aprobar))
-    app.add_handler(CommandHandler("rechazar", rechazar))
-
     app.add_handler(MessageHandler(filters.PHOTO, recibir_comprobante))
+    app.add_handler(CallbackQueryHandler(manejar_boton))
 
     print("Bot iniciado...")
     app.run_polling()
