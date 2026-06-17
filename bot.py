@@ -1,4 +1,5 @@
-import requests
+import urllib.request
+import json
 from telegram import (
     Update,
     InlineKeyboardButton,
@@ -18,7 +19,7 @@ ADMIN_ID = 7078845937
 
 # Links directos para 13 y 15
 LINK_13 = "https://tuservidor.com/link13"
-LINK_15 = "https://t.me/+Y7ikb4pcNc01Y2Yx"
+LINK_15 = "https://tuservidor.com/link15"
 
 # API base de tu repo en GitHub
 GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/contents/contenido/contenido"
@@ -49,7 +50,7 @@ CATÁLOGO
 
 Para pagar utiliza mi link de paypal https://www.paypal.com/paypalme/sofiafernandez112
 
-Y envia foto del comprobante para ser revisado 
+Y envia foto del comprobante para ser revisado
 """
     await update.message.reply_text(mensaje)
 
@@ -64,34 +65,44 @@ Un unico pago y te quedas para SIEMPRE
 1. Realiza el pago aqui https://www.paypal.com/paypalme/sofiafernandez112.
 2. Envía el foto del pago.
 3. Espera la aprobación.
+
 """
     await update.message.reply_text(mensaje)
 
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Contactame @Sofi_ly19 si tienes dudas.")
+    await update.message.reply_text("Contacta al administrador si tienes dudas.")
 
 
 async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, precio: str):
     if precio in ["6", "9"]:
         url_api = f"{GITHUB_API_BASE}/precio{precio}"
         try:
-            resp = requests.get(url_api)
-            archivos = resp.json()
+            with urllib.request.urlopen(url_api, timeout=15) as resp:
+                archivos = json.loads(resp.read().decode())
 
             for item in archivos:
                 nombre = item["name"]
                 enlace = item["download_url"]
                 extension = nombre.lower()
 
-                data = requests.get(enlace).content
+                # Aviso de progreso para archivos grandes
+                await context.bot.send_message(chat_id=usuario_id, text=f"📦 Enviando archivo: {nombre}...")
 
-                if extension.endswith((".jpg", ".jpeg", ".png", ".webp")):
-                    await context.bot.send_photo(chat_id=usuario_id, photo=data)
-                elif extension.endswith((".mp4", ".mov", ".mkv")):
-                    await context.bot.send_video(chat_id=usuario_id, video=data)
-                else:
-                    await context.bot.send_document(chat_id=usuario_id, document=data, filename=nombre)
+                try:
+                    with urllib.request.urlopen(enlace, timeout=30) as f:
+                        data = f.read()
+
+                    if extension.endswith((".jpg", ".jpeg", ".png", ".webp")):
+                        await context.bot.send_photo(chat_id=usuario_id, photo=data)
+                    elif extension.endswith((".mp4", ".mov", ".mkv")):
+                        await context.bot.send_video(chat_id=usuario_id, video=data)
+                    else:
+                        await context.bot.send_document(chat_id=usuario_id, document=data, filename=nombre)
+
+                except Exception as e:
+                    print(f"Error enviando {nombre}: {e}")
+                    await context.bot.send_message(chat_id=usuario_id, text=f"❌ Error enviando {nombre}")
 
         except Exception as e:
             await context.bot.send_message(chat_id=usuario_id, text=f"❌ Error leyendo carpeta: {e}")
