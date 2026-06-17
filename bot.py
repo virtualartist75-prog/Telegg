@@ -20,7 +20,7 @@ TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 7078845937
 
 # Links directos para 13 y 15
-LINK_13 = "https://tuservidor.com/link13"
+LINK_13 = "@Sofi_ly19 hablame"
 LINK_15 = "https://t.me/+Y7ikb4pcNc01Y2Yx"
 
 # API base de tu repo en GitHub
@@ -29,7 +29,7 @@ GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/cont
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Bienvenid@\n\n/catalogo - Ver catálogo\n/comprar - Información de compra\n/ayuda - Contacto"
+        "💕 Bienvenid@ a mi bot de contenido 💕 \n\n/catalogo - Ver catálogo\n/comprar - Información de compra\n/ayuda - Contacto"
     )
 
 
@@ -67,7 +67,7 @@ async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Contacta al administrador si tienes dudas.")
+    await update.message.reply_text("Contacta conmigo @Sofi_ly19 si tienes dudas.")
 
 
 async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, precio: str):
