@@ -29,7 +29,7 @@ GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/cont
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "Bienvenid@\n\n/catalogo - Ver catálogo\n/vip - Información VIP\n/ayuda - Contacto"
+        "Bienvenid@\n\n/catalogo - Ver catálogo\n/comprar - Información de compra\n/ayuda - Contacto"
     )
 
 
@@ -38,29 +38,30 @@ async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 CATÁLOGO
 
 ⭐ $6 por 10 fotos y 5 videos ⭐
+
 💕 $9 por 25 fotos y 15 videos 💕
+
 💦 $13 chat hot (SOLO SI ESTOY CONECTADA) 💦
+
 ✨ $15 Canal VIP 100 fotos y 30 videos ✨
 
-Para pagar utiliza mi link de PayPal:
-https://www.paypal.com/paypalme/sofiafernandez112
-
-Envía foto del comprobante para revisión.
+SI QUIERES COMPRAR UNO PORFAVOR ESCRIBE /comprar
 """
     await update.message.reply_text(mensaje)
 
 
-async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
-Información de mi Canal VIP
-
-Contiene todo mi contenido (sola y follando).
-Un único pago y te quedas para SIEMPRE.
-
 1. Realiza el pago aquí:
    https://www.paypal.com/paypalme/sofiafernandez112
+   
 2. Envía la foto del pago.
+
 3. Espera la aprobación.
+
+4. Se enviara automaticamente mi contenido rico
+
+5. Disfruta
 """
     await update.message.reply_text(mensaje)
 
@@ -161,7 +162,7 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("catalogo", catalogo))
-    app.add_handler(CommandHandler("vip", vip))
+    app.add_handler(CommandHandler("comprar", comprar))
     app.add_handler(CommandHandler("ayuda", ayuda))
     app.add_handler(MessageHandler(filters.PHOTO, recibir_comprobante))
     app.add_handler(CallbackQueryHandler(manejar_boton))
