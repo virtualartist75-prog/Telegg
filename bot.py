@@ -21,7 +21,7 @@ ADMIN_ID = 7078845937
 
 # Links directos para 13 y 15
 LINK_13 = "https://tuservidor.com/link13"
-LINK_15 = "https://tuservidor.com/link15"
+LINK_15 = "https://t.me/+Y7ikb4pcNc01Y2Yx"
 
 # API base de tu repo en GitHub
 GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/contents/contenido/contenido"
