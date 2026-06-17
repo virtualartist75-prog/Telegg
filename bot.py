@@ -1,3 +1,4 @@
+import os
 import urllib.request
 import json
 from telegram import (
@@ -14,7 +15,8 @@ from telegram.ext import (
     filters
 )
 
-TOKEN = "8779001843:AAF2JSDzoMLxj8jtcUfbY72-hMqKfiINq2c"
+# Token desde variable de entorno (seguro en Render)
+TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 7078845937
 
 # Links directos para 13 y 15
@@ -41,31 +43,29 @@ async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 CATÁLOGO
 
 ⭐ $6 por 10 fotos y 5 videos ⭐
-
 💕 $9 por 25 fotos y 15 videos 💕
-
 💦 $13 chat hot (SOLO SI ESTOY CONECTADA) 💦
+✨ $15 Canal VIP 100 fotos y 30 videos ✨
 
-✨ $15 Canal VIP 100 fotos y 30 videos (Sola y follando) ✨
+Para pagar utiliza mi link de PayPal:
+https://www.paypal.com/paypalme/sofiafernandez112
 
-Para pagar utiliza mi link de paypal https://www.paypal.com/paypalme/sofiafernandez112
-
-Y envia foto del comprobante para ser revisado
+Envía foto del comprobante para revisión.
 """
     await update.message.reply_text(mensaje)
 
 
 async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
-Informacion de mi Canal VIP
+Información de mi Canal VIP
 
-Contiene todo mi contenido rico tanto sola como follando
-Un unico pago y te quedas para SIEMPRE
+Contiene todo mi contenido (sola y follando).
+Un único pago y te quedas para SIEMPRE.
 
-1. Realiza el pago aqui https://www.paypal.com/paypalme/sofiafernandez112.
-2. Envía el foto del pago.
+1. Realiza el pago aquí:
+   https://www.paypal.com/paypalme/sofiafernandez112
+2. Envía la foto del pago.
 3. Espera la aprobación.
-
 """
     await update.message.reply_text(mensaje)
 
@@ -81,9 +81,16 @@ async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, pr
             with urllib.request.urlopen(url_api, timeout=15) as resp:
                 archivos = json.loads(resp.read().decode())
 
+            total = len(archivos)
+            count = 0
+
             for item in archivos:
                 enlace = item["download_url"]
                 extension = item["name"].lower()
+                count += 1
+
+                # Mensaje de progreso sin mostrar nombres
+                await context.bot.send_message(chat_id=usuario_id, text=f"📦 Enviando archivo {count}/{total}...")
 
                 try:
                     with urllib.request.urlopen(enlace, timeout=30) as f:
