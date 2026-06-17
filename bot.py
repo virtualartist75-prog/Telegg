@@ -1,11 +1,9 @@
-import os
-
+import requests
 from telegram import (
     Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup
 )
-
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -17,6 +15,13 @@ from telegram.ext import (
 
 TOKEN = "TU_TOKEN_AQUI"
 ADMIN_ID = 7078845937
+
+# Links directos para 13 y 15
+LINK_13 = "https://tuservidor.com/link13"
+LINK_15 = "https://tuservidor.com/link15"
+
+# Repositorio GitHub (ajusta con tu usuario y repo)
+GITHUB_API_BASE = "https://api.github.com/repos/TU_USUARIO/TU_REPO/contents/contenido"
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -60,42 +65,36 @@ async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, precio: str):
-    carpeta = f"contenido/precio{precio}"
-
-    if not os.path.exists(carpeta):
-        await context.bot.send_message(
-            chat_id=usuario_id,
-            text="❌ El paquete no existe."
-        )
-        return
-
-    archivos = sorted(os.listdir(carpeta))
-
-    for archivo in archivos:
-        ruta = os.path.join(carpeta, archivo)
-
-        if not os.path.isfile(ruta):
-            continue
-
-        extension = archivo.lower()
-
+    if precio in ["6", "9"]:
+        url_api = f"{GITHUB_API_BASE}/precio{precio}"
         try:
-            if extension.endswith((".jpg", ".jpeg", ".png", ".webp")):
-                with open(ruta, "rb") as f:
-                    await context.bot.send_photo(chat_id=usuario_id, photo=f)
+            resp = requests.get(url_api)
+            archivos = resp.json()
 
-            elif extension.endswith((".mp4", ".mov", ".mkv")):
-                with open(ruta, "rb") as f:
-                    await context.bot.send_video(chat_id=usuario_id, video=f)
+            for item in archivos:
+                nombre = item["name"]
+                enlace = item["download_url"]
+                extension = nombre.lower()
 
-            else:
-                with open(ruta, "rb") as f:
-                    await context.bot.send_document(chat_id=usuario_id, document=f)
+                data = requests.get(enlace).content
+
+                if extension.endswith((".jpg", ".jpeg", ".png", ".webp")):
+                    await context.bot.send_photo(chat_id=usuario_id, photo=data)
+                elif extension.endswith((".mp4", ".mov", ".mkv")):
+                    await context.bot.send_video(chat_id=usuario_id, video=data)
+                else:
+                    await context.bot.send_document(chat_id=usuario_id, document=data, filename=nombre)
 
         except Exception as e:
-            print(f"Error enviando {archivo}: {e}")
+            await context.bot.send_message(chat_id=usuario_id, text=f"❌ Error leyendo carpeta: {e}")
+            return
 
-    await context.bot.send_message(chat_id=usuario_id, text="✅ Entrega completada.")
+        await context.bot.send_message(chat_id=usuario_id, text="✅ Entrega completada.")
+
+    elif precio == "13":
+        await context.bot.send_message(chat_id=usuario_id, text=f"✅ Aquí está tu acceso: {LINK_13}")
+    elif precio == "15":
+        await context.bot.send_message(chat_id=usuario_id, text=f"✅ Aquí está tu acceso: {LINK_15}")
 
 
 async def recibir_comprobante(update: Update, context: ContextTypes.DEFAULT_TYPE):
