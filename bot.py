@@ -39,29 +39,33 @@ async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
 CATÁLOGO
 
-⭐ $6
-💕 $9
-💦 $13
-✨ $15
+⭐ $6 por 10 fotos y 5 videos ⭐
+💕 $9 por 25 fotos y 15 videos 💕
+💦 $13 chat hot (SOLO SI ESTOY CONECTADA) 💦
+✨ $15 Canal VIP 100 fotos y 30 videos (Sola y follando) ✨
 
-Envía tu comprobante de pago para revisión.
+Para pagar utiliza mi link de paypal https://www.paypal.com/paypalme/sofiafernandez112
+Y envia foto del comprobante para ser revisado 
 """
     await update.message.reply_text(mensaje)
 
 
 async def vip(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
-VIP
+Informacion de mi Canal VIP
 
-1. Realiza el pago.
-2. Envía el comprobante.
+Contiene todo mi contenido rico tanto sola como follando
+Un unico pago y te quedas para SIEMPRE
+
+1. Realiza el pago aqui https://www.paypal.com/paypalme/sofiafernandez112.
+2. Envía el foto del pago.
 3. Espera la aprobación.
 """
     await update.message.reply_text(mensaje)
 
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Contacta al administrador si tienes dudas.")
+    await update.message.reply_text("Contactame @Sofi_ly19 si tienes dudas.")
 
 
 async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, precio: str):
