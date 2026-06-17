@@ -13,15 +13,15 @@ from telegram.ext import (
     filters
 )
 
-TOKEN = "TU_TOKEN_AQUI"
+TOKEN = "8779001843:AAF2JSDzoMLxj8jtcUfbY72-hMqKfiINq2c"
 ADMIN_ID = 7078845937
 
 # Links directos para 13 y 15
 LINK_13 = "https://tuservidor.com/link13"
-LINK_15 = "https://tuservidor.com/link15"
+LINK_15 = "https://t.me/+Y7ikb4pcNc01Y2Yx"
 
-# Repositorio GitHub (ajusta con tu usuario y repo)
-GITHUB_API_BASE = "https://api.github.com/repos/TU_USUARIO/TU_REPO/contents/contenido"
+# API base de tu repo en GitHub
+GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/contents/contenido/contenido"
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
