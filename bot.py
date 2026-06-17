@@ -82,12 +82,8 @@ async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, pr
                 archivos = json.loads(resp.read().decode())
 
             for item in archivos:
-                nombre = item["name"]
                 enlace = item["download_url"]
-                extension = nombre.lower()
-
-                # Aviso de progreso para archivos grandes
-                await context.bot.send_message(chat_id=usuario_id, text=f"📦 Enviando archivo: {nombre}...")
+                extension = item["name"].lower()
 
                 try:
                     with urllib.request.urlopen(enlace, timeout=30) as f:
@@ -98,11 +94,10 @@ async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, pr
                     elif extension.endswith((".mp4", ".mov", ".mkv")):
                         await context.bot.send_video(chat_id=usuario_id, video=data)
                     else:
-                        await context.bot.send_document(chat_id=usuario_id, document=data, filename=nombre)
+                        await context.bot.send_document(chat_id=usuario_id, document=data)
 
-                except Exception as e:
-                    print(f"Error enviando {nombre}: {e}")
-                    await context.bot.send_message(chat_id=usuario_id, text=f"❌ Error enviando {nombre}")
+                except Exception:
+                    await context.bot.send_message(chat_id=usuario_id, text="❌ Error enviando un archivo")
 
         except Exception as e:
             await context.bot.send_message(chat_id=usuario_id, text=f"❌ Error leyendo carpeta: {e}")
