@@ -40,11 +40,15 @@ async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
 CATÁLOGO
 
 ⭐ $6 por 10 fotos y 5 videos ⭐
+
 💕 $9 por 25 fotos y 15 videos 💕
+
 💦 $13 chat hot (SOLO SI ESTOY CONECTADA) 💦
+
 ✨ $15 Canal VIP 100 fotos y 30 videos (Sola y follando) ✨
 
 Para pagar utiliza mi link de paypal https://www.paypal.com/paypalme/sofiafernandez112
+
 Y envia foto del comprobante para ser revisado 
 """
     await update.message.reply_text(mensaje)
