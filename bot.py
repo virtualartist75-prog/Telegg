@@ -13,6 +13,10 @@ ADMIN_ID = int(os.getenv("ADMIN_ID", "7078845937"))
 PP_CLIENT_ID = os.getenv("PP_CLIENT_ID")
 PP_SECRET = os.getenv("PP_SECRET")
 
+# URLs de webhook desde entorno
+TELEGRAM_WEBHOOK_URL = os.getenv("TELEGRAM_WEBHOOK_URL", "https://telegg-wz7c.onrender.com/telegram")
+PAYPAL_WEBHOOK_URL = os.getenv("PAYPAL_WEBHOOK_URL", "https://telegg-wz7c.onrender.com/paypal")
+
 # Configuración de PayPal
 paypalrestsdk.configure({
     "mode": "sandbox",  # Cambia a "live" en producción
@@ -141,8 +145,8 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
         link = crear_pago(
             monto=precio,
             descripcion=descripcion,
-            return_url="https://tuservidor.com/success",
-            cancel_url="https://tuservidor.com/cancel"
+            return_url=os.getenv("PAYPAL_RETURN_URL", "https://example.com/success"),
+            cancel_url=os.getenv("PAYPAL_CANCEL_URL", "https://example.com/cancel")
         )
         if link:
             await context.bot.send_message(chat_id=usuario_id, text=f"✅ Paga aquí:\n{link}")
@@ -153,15 +157,20 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ---------------- WEBHOOKS ----------------
 
+@app.route("/")
+def home():
+    return "Bot activo", 200
+
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
-    update = Update.de_json(request.get_json(force=True), bot=Application.builder().token(BOT_TOKEN).build().bot)
     application = Application.builder().token(BOT_TOKEN).build()
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("catalogo", catalogo))
     application.add_handler(CommandHandler("comprar", comprar))
     application.add_handler(CommandHandler("ayuda", ayuda))
     application.add_handler(CallbackQueryHandler(manejar_boton))
+
+    update = Update.de_json(request.get_json(force=True), application.bot)
     application.process_update(update)
     return "OK", 200
 
@@ -173,14 +182,14 @@ def paypal_webhook():
     if event_type == "PAYMENT.CAPTURE.COMPLETED":
         cliente_id = data["resource"]["payer"]["payer_id"]
         monto = data["resource"]["amount"]["value"]
-        bot = Application.builder().token(BOT_TOKEN).build().bot
-        bot.send_message(chat_id=ADMIN_ID,
+        application = Application.builder().token(BOT_TOKEN).build()
+        application.bot.send_message(chat_id=ADMIN_ID,
                          text=f"✅ Venta realizada\nCliente PayPal: {cliente_id}\nMonto: {monto} USD")
 
     elif event_type == "PAYMENT.CAPTURE.REFUNDED":
         cliente_id = data["resource"]["payer"]["payer_id"]
-        bot = Application.builder().token(BOT_TOKEN).build().bot
-        bot.send_message(chat_id=ADMIN_ID,
+        application = Application.builder().token(BOT_TOKEN).build()
+        application.bot.send_message(chat_id=ADMIN_ID,
                          text=f"⚠️ Reembolso detectado\nCliente PayPal: {cliente_id}")
 
     return "OK", 200
