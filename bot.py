@@ -7,6 +7,7 @@ from flask import Flask, request
 import paypalrestsdk
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram.request import HTTPXRequest
 
 # Variables de entorno seguras
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -113,16 +114,20 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ---------------- APPLICATION ----------------
 
+# Configuramos el cliente HTTP con pool más grande
+request = HTTPXRequest(connection_pool_size=20, read_timeout=30)
+
 # Creamos la Application una sola vez
-application = Application.builder().token(BOT_TOKEN).build()
+application = Application.builder().token(BOT_TOKEN).request(request).build()
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("catalogo", catalogo))
 application.add_handler(CommandHandler("comprar", comprar))
 application.add_handler(CommandHandler("ayuda", ayuda))
 application.add_handler(CallbackQueryHandler(manejar_boton))
 
-# Inicializamos la aplicación (esto evita el RuntimeError)
+# Inicializamos y arrancamos la aplicación en segundo plano
 asyncio.run(application.initialize())
+asyncio.run(application.start())
 
 # ---------------- WEBHOOKS ----------------
 
@@ -133,7 +138,8 @@ def home():
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
     update = Update.de_json(request.get_json(force=True), application.bot)
-    asyncio.run(application.process_update(update))
+    # Encolamos el update en lugar de procesarlo directamente
+    application.update_queue.put_nowait(update)
     return "OK", 200
 
 @app.route("/paypal", methods=["POST"])
