@@ -12,10 +12,8 @@ from telegram import (
 from telegram.ext import (
     Application,
     CommandHandler,
-    MessageHandler,
     CallbackQueryHandler,
-    ContextTypes,
-    filters
+    ContextTypes
 )
 
 # Token seguro desde variable de entorno
@@ -33,7 +31,7 @@ GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/cont
 paypalrestsdk.configure({
     "mode": "sandbox",  # Cambia a "live" en producción
     "client_id": "AY4tdbh4bKjdwn_ipn1O3Fa5TSC1Q2WEIzmvRStKg1_C0g5OSPnIpsVzbgS0TQgHvon72j6bU2aroXG3",
-    "client_secret": os.getenv("PP_Key")
+    "client_secret": "PP_Key"
 })
 
 # Flask para webhook
@@ -44,17 +42,17 @@ logging.basicConfig(level=logging.INFO)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "💕 Bienvenid@ a mi bot de contenido 💕 \n\n/catalogo - Ver catálogo\n/comprar - Información de compra\n/ayuda - Contacto"
+        "💕 Bienvenid@ a mi bot de contenido 💕 \n\n/catalogo - Ver catálogo\n/comprar - Comprar paquetes\n/ayuda - Contacto"
     )
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
 CATÁLOGO
 
-💋 $1 por 5 fotos 💋
-⭐ $6 por 10 fotos y 5 videos ⭐
+💋 $6 por 10 fotos y 5 videos 💋
 💕 $9 por 25 fotos y 15 videos 💕
-✨ $12 Canal VIP 100 fotos y 30 videos ✨
+✨ $13 acceso especial ✨
+🌟 $15 canal VIP 🌟
 
 Usa /comprar para generar tu link de pago.
 """
@@ -154,7 +152,10 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
             cancel_url="https://tuservidor.com/cancel"
         )
         if link:
+            # Enviar link al cliente
             await context.bot.send_message(chat_id=usuario_id, text=f"✅ Paga aquí:\n{link}")
+            # Avisar al admin
+            await context.bot.send_message(chat_id=ADMIN_ID, text=f"🔗 Link generado para cliente {usuario_id}: {link}")
             await query.edit_message_text(f"Link de pago generado para paquete ${precio}.")
         else:
             await context.bot.send_message(chat_id=usuario_id, text="❌ Error generando link de pago.")
@@ -170,7 +171,6 @@ def webhook():
         cliente_id = data["resource"]["payer"]["payer_id"]
         monto = data["resource"]["amount"]["value"]
 
-        # Entregar contenido
         # Aquí deberías mapear cliente_id con usuario_id de Telegram
         # enviar_paquete(context, usuario_id, precio)
 
