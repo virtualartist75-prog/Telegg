@@ -121,6 +121,9 @@ application.add_handler(CommandHandler("comprar", comprar))
 application.add_handler(CommandHandler("ayuda", ayuda))
 application.add_handler(CallbackQueryHandler(manejar_boton))
 
+# Inicializamos la aplicación (esto evita el RuntimeError)
+asyncio.run(application.initialize())
+
 # ---------------- WEBHOOKS ----------------
 
 @app.route("/")
