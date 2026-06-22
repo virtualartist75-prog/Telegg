@@ -4,18 +4,14 @@ import json
 import logging
 from flask import Flask, request
 import paypalrestsdk
-from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Dispatcher, CommandHandler, CallbackQueryHandler, ContextTypes
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # Variables de entorno seguras
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "7078845937"))
 PP_CLIENT_ID = os.getenv("PP_CLIENT_ID")
 PP_SECRET = os.getenv("PP_SECRET")
-
-# Bot de Telegram
-bot = Bot(token=BOT_TOKEN)
-dp = Dispatcher(bot, None, workers=0)
 
 # Configuración de PayPal
 paypalrestsdk.configure({
@@ -37,12 +33,12 @@ GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/cont
 
 # ---------------- BOT ----------------
 
-def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    update.message.reply_text(
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
         "💕 Bienvenid@ a mi bot de contenido 💕 \n\n/catalogo - Ver catálogo\n/comprar - Comprar paquetes\n/ayuda - Contacto"
     )
 
-def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     mensaje = """
 CATÁLOGO
 
@@ -53,9 +49,9 @@ CATÁLOGO
 
 Usa /comprar para generar tu link de pago.
 """
-    update.message.reply_text(mensaje)
+    await update.message.reply_text(mensaje)
 
-def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     teclado = [
         [InlineKeyboardButton("$6", callback_data=f"paypal:6:{update.effective_user.id}"),
          InlineKeyboardButton("$9", callback_data=f"paypal:9:{update.effective_user.id}")],
@@ -63,14 +59,14 @@ def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
          InlineKeyboardButton("$15", callback_data=f"paypal:15:{update.effective_user.id}")]
     ]
     reply_markup = InlineKeyboardMarkup(teclado)
-    update.message.reply_text("Selecciona tu paquete:", reply_markup=reply_markup)
+    await update.message.reply_text("Selecciona tu paquete:", reply_markup=reply_markup)
 
-def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    update.message.reply_text("Contacta conmigo @Sofi_ly19 si tienes dudas.")
+async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("Contacta conmigo @Sofi_ly19 si tienes dudas.")
 
 # ---------------- ENTREGA ----------------
 
-def enviar_paquete(usuario_id: int, precio: str):
+async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, precio: str):
     if precio in ["6", "9"]:
         url_api = f"{GITHUB_API_BASE}/precio{precio}"
         try:
@@ -82,32 +78,32 @@ def enviar_paquete(usuario_id: int, precio: str):
                 enlace = item["download_url"]
                 extension = item["name"].lower()
 
-                bot.send_message(chat_id=usuario_id, text=f"📦 Enviando archivo {idx}/{total}...")
+                await context.bot.send_message(chat_id=usuario_id, text=f"📦 Enviando archivo {idx}/{total}...")
 
                 try:
                     with urllib.request.urlopen(enlace, timeout=30) as f:
                         data = f.read()
 
                     if extension.endswith((".jpg", ".jpeg", ".png", ".webp")):
-                        bot.send_photo(chat_id=usuario_id, photo=data)
+                        await context.bot.send_photo(chat_id=usuario_id, photo=data)
                     elif extension.endswith((".mp4", ".mov", ".mkv")):
-                        bot.send_video(chat_id=usuario_id, video=data)
+                        await context.bot.send_video(chat_id=usuario_id, video=data)
                     else:
-                        bot.send_document(chat_id=usuario_id, document=data)
+                        await context.bot.send_document(chat_id=usuario_id, document=data)
 
                 except Exception:
-                    bot.send_message(chat_id=usuario_id, text="❌ Error enviando un archivo")
+                    await context.bot.send_message(chat_id=usuario_id, text="❌ Error enviando un archivo")
 
         except Exception as e:
-            bot.send_message(chat_id=usuario_id, text=f"❌ Error leyendo carpeta: {e}")
+            await context.bot.send_message(chat_id=usuario_id, text=f"❌ Error leyendo carpeta: {e}")
             return
 
-        bot.send_message(chat_id=usuario_id, text="✅ Entrega completada.")
+        await context.bot.send_message(chat_id=usuario_id, text="✅ Entrega completada.")
 
     elif precio == "13":
-        bot.send_message(chat_id=usuario_id, text=f"✅ Aquí está tu acceso: {LINK_13}")
+        await context.bot.send_message(chat_id=usuario_id, text=f"✅ Aquí está tu acceso: {LINK_13}")
     elif precio == "15":
-        bot.send_message(chat_id=usuario_id, text=f"✅ Aquí está tu acceso: {LINK_15}")
+        await context.bot.send_message(chat_id=usuario_id, text=f"✅ Aquí está tu acceso: {LINK_15}")
 
 # ---------------- PAYPAL ----------------
 
@@ -133,9 +129,9 @@ def crear_pago(monto, descripcion, return_url, cancel_url):
         logging.error(pago.error)
         return None
 
-def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
-    query.answer()
+    await query.answer()
 
     accion, precio, usuario_id = query.data.split(":")
     usuario_id = int(usuario_id)
@@ -149,18 +145,24 @@ def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
             cancel_url="https://tuservidor.com/cancel"
         )
         if link:
-            bot.send_message(chat_id=usuario_id, text=f"✅ Paga aquí:\n{link}")
-            bot.send_message(chat_id=ADMIN_ID, text=f"🔗 Link generado para cliente {usuario_id}: {link}")
-            query.edit_message_text(f"Link de pago generado para paquete ${precio}.")
+            await context.bot.send_message(chat_id=usuario_id, text=f"✅ Paga aquí:\n{link}")
+            await context.bot.send_message(chat_id=ADMIN_ID, text=f"🔗 Link generado para cliente {usuario_id}: {link}")
+            await query.edit_message_text(f"Link de pago generado para paquete ${precio}.")
         else:
-            bot.send_message(chat_id=usuario_id, text="❌ Error generando link de pago.")
+            await context.bot.send_message(chat_id=usuario_id, text="❌ Error generando link de pago.")
 
 # ---------------- WEBHOOKS ----------------
 
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
-    update = Update.de_json(request.get_json(force=True), bot)
-    dp.process_update(update)
+    update = Update.de_json(request.get_json(force=True), bot=Application.builder().token(BOT_TOKEN).build().bot)
+    application = Application.builder().token(BOT_TOKEN).build()
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("catalogo", catalogo))
+    application.add_handler(CommandHandler("comprar", comprar))
+    application.add_handler(CommandHandler("ayuda", ayuda))
+    application.add_handler(CallbackQueryHandler(manejar_boton))
+    application.process_update(update)
     return "OK", 200
 
 @app.route("/paypal", methods=["POST"])
@@ -171,11 +173,13 @@ def paypal_webhook():
     if event_type == "PAYMENT.CAPTURE.COMPLETED":
         cliente_id = data["resource"]["payer"]["payer_id"]
         monto = data["resource"]["amount"]["value"]
+        bot = Application.builder().token(BOT_TOKEN).build().bot
         bot.send_message(chat_id=ADMIN_ID,
                          text=f"✅ Venta realizada\nCliente PayPal: {cliente_id}\nMonto: {monto} USD")
 
     elif event_type == "PAYMENT.CAPTURE.REFUNDED":
         cliente_id = data["resource"]["payer"]["payer_id"]
+        bot = Application.builder().token(BOT_TOKEN).build().bot
         bot.send_message(chat_id=ADMIN_ID,
                          text=f"⚠️ Reembolso detectado\nCliente PayPal: {cliente_id}")
 
@@ -183,15 +187,6 @@ def paypal_webhook():
 
 # ---------------- MAIN ----------------
 
-def main():
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("catalogo", catalogo))
-    dp.add_handler(CommandHandler("comprar", comprar))
-    dp.add_handler(CommandHandler("ayuda", ayuda))
-    dp.add_handler(CallbackQueryHandler(manejar_boton))
-
-    print("Bot con webhook iniciado...")
-
 if __name__ == "__main__":
-    main()
+    print("Bot con webhook iniciado...")
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")))
