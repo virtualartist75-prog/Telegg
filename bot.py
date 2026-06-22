@@ -2,6 +2,7 @@ import os
 import urllib.request
 import json
 import logging
+import asyncio
 from flask import Flask, request
 import paypalrestsdk
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -12,10 +13,6 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "7078845937"))
 PP_CLIENT_ID = os.getenv("PP_CLIENT_ID")
 PP_SECRET = os.getenv("PP_SECRET")
-
-# URLs de webhook desde entorno
-TELEGRAM_WEBHOOK_URL = os.getenv("TELEGRAM_WEBHOOK_URL", "https://telegg-wz7c.onrender.com/telegram")
-PAYPAL_WEBHOOK_URL = os.getenv("PAYPAL_WEBHOOK_URL", "https://telegg-wz7c.onrender.com/paypal")
 
 # Configuración de PayPal
 paypalrestsdk.configure({
@@ -68,47 +65,6 @@ async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Contacta conmigo @Sofi_ly19 si tienes dudas.")
 
-# ---------------- ENTREGA ----------------
-
-async def enviar_paquete(context: ContextTypes.DEFAULT_TYPE, usuario_id: int, precio: str):
-    if precio in ["6", "9"]:
-        url_api = f"{GITHUB_API_BASE}/precio{precio}"
-        try:
-            with urllib.request.urlopen(url_api, timeout=15) as resp:
-                archivos = json.loads(resp.read().decode())
-
-            total = len(archivos)
-            for idx, item in enumerate(archivos, start=1):
-                enlace = item["download_url"]
-                extension = item["name"].lower()
-
-                await context.bot.send_message(chat_id=usuario_id, text=f"📦 Enviando archivo {idx}/{total}...")
-
-                try:
-                    with urllib.request.urlopen(enlace, timeout=30) as f:
-                        data = f.read()
-
-                    if extension.endswith((".jpg", ".jpeg", ".png", ".webp")):
-                        await context.bot.send_photo(chat_id=usuario_id, photo=data)
-                    elif extension.endswith((".mp4", ".mov", ".mkv")):
-                        await context.bot.send_video(chat_id=usuario_id, video=data)
-                    else:
-                        await context.bot.send_document(chat_id=usuario_id, document=data)
-
-                except Exception:
-                    await context.bot.send_message(chat_id=usuario_id, text="❌ Error enviando un archivo")
-
-        except Exception as e:
-            await context.bot.send_message(chat_id=usuario_id, text=f"❌ Error leyendo carpeta: {e}")
-            return
-
-        await context.bot.send_message(chat_id=usuario_id, text="✅ Entrega completada.")
-
-    elif precio == "13":
-        await context.bot.send_message(chat_id=usuario_id, text=f"✅ Aquí está tu acceso: {LINK_13}")
-    elif precio == "15":
-        await context.bot.send_message(chat_id=usuario_id, text=f"✅ Aquí está tu acceso: {LINK_15}")
-
 # ---------------- PAYPAL ----------------
 
 def crear_pago(monto, descripcion, return_url, cancel_url):
@@ -155,6 +111,16 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
         else:
             await context.bot.send_message(chat_id=usuario_id, text="❌ Error generando link de pago.")
 
+# ---------------- APPLICATION ----------------
+
+# Creamos la Application una sola vez
+application = Application.builder().token(BOT_TOKEN).build()
+application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("catalogo", catalogo))
+application.add_handler(CommandHandler("comprar", comprar))
+application.add_handler(CommandHandler("ayuda", ayuda))
+application.add_handler(CallbackQueryHandler(manejar_boton))
+
 # ---------------- WEBHOOKS ----------------
 
 @app.route("/")
@@ -163,15 +129,8 @@ def home():
 
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
-    application = Application.builder().token(BOT_TOKEN).build()
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("catalogo", catalogo))
-    application.add_handler(CommandHandler("comprar", comprar))
-    application.add_handler(CommandHandler("ayuda", ayuda))
-    application.add_handler(CallbackQueryHandler(manejar_boton))
-
     update = Update.de_json(request.get_json(force=True), application.bot)
-    application.process_update(update)
+    asyncio.run(application.process_update(update))
     return "OK", 200
 
 @app.route("/paypal", methods=["POST"])
@@ -182,15 +141,13 @@ def paypal_webhook():
     if event_type == "PAYMENT.CAPTURE.COMPLETED":
         cliente_id = data["resource"]["payer"]["payer_id"]
         monto = data["resource"]["amount"]["value"]
-        application = Application.builder().token(BOT_TOKEN).build()
-        application.bot.send_message(chat_id=ADMIN_ID,
-                         text=f"✅ Venta realizada\nCliente PayPal: {cliente_id}\nMonto: {monto} USD")
+        asyncio.run(application.bot.send_message(chat_id=ADMIN_ID,
+                         text=f"✅ Venta realizada\nCliente PayPal: {cliente_id}\nMonto: {monto} USD"))
 
     elif event_type == "PAYMENT.CAPTURE.REFUNDED":
         cliente_id = data["resource"]["payer"]["payer_id"]
-        application = Application.builder().token(BOT_TOKEN).build()
-        application.bot.send_message(chat_id=ADMIN_ID,
-                         text=f"⚠️ Reembolso detectado\nCliente PayPal: {cliente_id}")
+        asyncio.run(application.bot.send_message(chat_id=ADMIN_ID,
+                         text=f"⚠️ Reembolso detectado\nCliente PayPal: {cliente_id}"))
 
     return "OK", 200
 
