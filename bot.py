@@ -31,7 +31,7 @@ GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/cont
 paypalrestsdk.configure({
     "mode": "sandbox",  # Cambia a "live" en producción
     "client_id": "AY4tdbh4bKjdwn_ipn1O3Fa5TSC1Q2WEIzmvRStKg1_C0g5OSPnIpsVzbgS0TQgHvon72j6bU2aroXG3",
-    "client_secret": "PP_Key"
+    "client_secret": os.getenv("PP_Key")
 })
 
 # Flask para webhook
