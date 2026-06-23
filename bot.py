@@ -1,9 +1,7 @@
 import os
-import urllib.request
-import json
 import logging
 import asyncio
-from flask import Flask, request
+from flask import Flask, request   # <-- este request es el de Flask
 import paypalrestsdk
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
@@ -25,13 +23,6 @@ paypalrestsdk.configure({
 # Flask app
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
-
-# Links directos
-LINK_13 = "@Sofi_ly19 hablame"
-LINK_15 = "https://t.me/+Y7ikb4pcNc01Y2Yx"
-
-# API base de tu repo en GitHub
-GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/contents/contenido/contenido"
 
 # ---------------- BOT ----------------
 
@@ -115,10 +106,9 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ---------------- APPLICATION ----------------
 
 # Configuramos el cliente HTTP con pool más grande
-request = HTTPXRequest(connection_pool_size=20, read_timeout=30)
+http_request = HTTPXRequest(connection_pool_size=20, read_timeout=30)
 
-# Creamos la Application una sola vez
-application = Application.builder().token(BOT_TOKEN).request(request).build()
+application = Application.builder().token(BOT_TOKEN).request(http_request).build()
 application.add_handler(CommandHandler("start", start))
 application.add_handler(CommandHandler("catalogo", catalogo))
 application.add_handler(CommandHandler("comprar", comprar))
@@ -136,8 +126,8 @@ def home():
 
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
+    # Aquí request es el de Flask
     update = Update.de_json(request.get_json(force=True), application.bot)
-    # Encolamos el update en lugar de procesarlo directamente
     application.update_queue.put_nowait(update)
     return "OK", 200
 
