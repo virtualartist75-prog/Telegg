@@ -24,6 +24,9 @@ paypalrestsdk.configure({
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
+# Pagos ya procesados (evita ejecutar el mismo pago dos veces)
+pagos_procesados = set()
+
 # ─── EVENT LOOP DEDICADO ────────────────────────────────────────────────────
 
 loop = asyncio.new_event_loop()
@@ -134,7 +137,9 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def _enviar_archivos(usuario_id: int, carpeta: str):
     """Envía todos los archivos de una carpeta al usuario."""
-    ruta = os.path.join(os.path.dirname(os.path.abspath(__file__)), carpeta)
+    base = os.path.dirname(os.path.abspath(__file__))
+    ruta = os.path.join(base, carpeta)
+    logging.info(f"Buscando contenido en: {ruta}")
 
     if not os.path.exists(ruta):
         logging.error(f"Carpeta no encontrada: {ruta}")
@@ -144,7 +149,7 @@ async def _enviar_archivos(usuario_id: int, carpeta: str):
         )
         return
 
-    archivos = sorted(os.listdir(ruta))
+    archivos = sorted([f for f in os.listdir(ruta) if not f.startswith(".")])
     if not archivos:
         logging.warning(f"Carpeta vacía: {ruta}")
         await application.bot.send_message(
@@ -244,15 +249,50 @@ def success():
     if not payment_id or not payer_id:
         return "❌ Faltan datos del pago.", 400
 
+    # Evitar procesar el mismo pago dos veces
+    if payment_id in pagos_procesados:
+        logging.info(f"Pago {payment_id} ya fue procesado, ignorando.")
+        return """
+            <html>
+            <body style="font-family:sans-serif;text-align:center;padding:60px;background:#fff0f5;">
+                <h2 style="color:#d63384;">✅ ¡Pago completado!</h2>
+                <p>Gracias por tu compra 💕<br>El contenido ya está en el bot. Puedes cerrar esta ventana.</p>
+            </body>
+            </html>
+        """, 200
+
     try:
         payment = paypalrestsdk.Payment.find(payment_id)
 
+        # Si el pago ya está aprobado en PayPal, no intentar ejecutarlo de nuevo
+        if payment.state == "approved":
+            pagos_procesados.add(payment_id)
+            if usuario_id and monto:
+                run_async(enviar_contenido(usuario_id, monto))
+            run_async(application.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=(
+                    f"💰 ¡Venta confirmada!\n"
+                    f"Cliente ID: {usuario_id}\n"
+                    f"Monto: ${monto} USD\n"
+                    f"Payment ID: {payment_id}"
+                )
+            ))
+            return """
+                <html>
+                <body style="font-family:sans-serif;text-align:center;padding:60px;background:#fff0f5;">
+                    <h2 style="color:#d63384;">✅ ¡Pago completado!</h2>
+                    <p>Gracias por tu compra 💕<br>El contenido ya está en el bot. Puedes cerrar esta ventana.</p>
+                </body>
+                </html>
+            """, 200
+
         if payment.execute({"payer_id": payer_id}):
-            # Enviar contenido automáticamente
+            pagos_procesados.add(payment_id)
+
             if usuario_id and monto:
                 run_async(enviar_contenido(usuario_id, monto))
 
-            # Notificar al admin
             run_async(application.bot.send_message(
                 chat_id=ADMIN_ID,
                 text=(
