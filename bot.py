@@ -13,9 +13,10 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = int(os.getenv("ADMIN_ID", "7078845937"))
 PP_CLIENT_ID = os.getenv("PP_CLIENT_ID")
 PP_SECRET = os.getenv("PP_SECRET")
+BASE_URL = os.getenv("BASE_URL", "https://abc123.ngrok.io")  # ← Cambia esto por tu URL
 
 paypalrestsdk.configure({
-    "mode": "sandbox",
+    "mode": "sandbox",  # Cambia a "live" en producción
     "client_id": PP_CLIENT_ID,
     "client_secret": PP_SECRET
 })
@@ -24,7 +25,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # ─── EVENT LOOP DEDICADO ────────────────────────────────────────────────────
-# Un loop propio que corre en un hilo aparte; Flask lo usa para llamadas async
+
 loop = asyncio.new_event_loop()
 
 def start_loop(l):
@@ -75,16 +76,23 @@ async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ─── PAYPAL ─────────────────────────────────────────────────────────────────
 
-def crear_pago(monto, descripcion, return_url, cancel_url):
+def crear_pago(monto, descripcion, usuario_id):
+    return_url = f"{BASE_URL}/success?usuario_id={usuario_id}&monto={monto}"
+    cancel_url  = f"{BASE_URL}/cancel?usuario_id={usuario_id}"
+
     pago = paypalrestsdk.Payment({
         "intent": "sale",
         "payer": {"payment_method": "paypal"},
-        "redirect_urls": {"return_url": return_url, "cancel_url": cancel_url},
+        "redirect_urls": {
+            "return_url": return_url,
+            "cancel_url": cancel_url
+        },
         "transactions": [{
             "amount": {"total": str(monto), "currency": "USD"},
             "description": descripcion
         }]
     })
+
     if pago.create():
         for link in pago.links:
             if link.rel == "approval_url":
@@ -102,9 +110,9 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
     link = crear_pago(
         monto=precio,
         descripcion=f"Paquete ${precio}",
-        return_url=os.getenv("PAYPAL_RETURN_URL", "https://example.com/success"),
-        cancel_url=os.getenv("PAYPAL_CANCEL_URL", "https://example.com/cancel")
+        usuario_id=usuario_id
     )
+
     if link:
         await context.bot.send_message(chat_id=usuario_id,
                                        text=f"✅ Paga aquí:\n{link}")
@@ -122,7 +130,7 @@ application = (
     Application.builder()
     .token(BOT_TOKEN)
     .request(http_request)
-    .updater(None)          # ← Sin polling; solo webhook
+    .updater(None)          # Sin polling; solo webhook
     .build()
 )
 application.add_handler(CommandHandler("start", start))
@@ -131,9 +139,8 @@ application.add_handler(CommandHandler("comprar", comprar))
 application.add_handler(CommandHandler("ayuda", ayuda))
 application.add_handler(CallbackQueryHandler(manejar_boton))
 
-# Inicializar y arrancar el bot en el loop dedicado
 run_async(application.initialize())
-run_async(application.start())          # ← ESTO FALTABA
+run_async(application.start())
 
 # ─── WEBHOOKS ───────────────────────────────────────────────────────────────
 
@@ -145,9 +152,62 @@ def home():
 def telegram_webhook():
     data = request.get_json(force=True)
     update = Update.de_json(data, application.bot)
-    # Procesar el update en el loop dedicado (no en el hilo de Flask)
     run_async(application.process_update(update))
     return "OK", 200
+
+@app.route("/success")
+def success():
+    payment_id = request.args.get("paymentId")
+    payer_id   = request.args.get("PayerID")
+    usuario_id = request.args.get("usuario_id")
+    monto      = request.args.get("monto")
+
+    if not payment_id or not payer_id:
+        return "❌ Faltan datos del pago.", 400
+
+    try:
+        payment = paypalrestsdk.Payment.find(payment_id)
+        if payment.execute({"payer_id": payer_id}):
+            # Notificar al comprador
+            if usuario_id:
+                run_async(application.bot.send_message(
+                    chat_id=int(usuario_id),
+                    text="✅ ¡Pago recibido! Gracias por tu compra 💕\nEn breve me pondré en contacto contigo."
+                ))
+            # Notificar al admin
+            run_async(application.bot.send_message(
+                chat_id=ADMIN_ID,
+                text=f"💰 ¡Venta confirmada!\nCliente ID: {usuario_id}\nMonto: ${monto} USD\nPayment ID: {payment_id}"
+            ))
+            return """
+                <html><body style="font-family:sans-serif; text-align:center; padding:50px;">
+                    <h2>✅ ¡Pago completado!</h2>
+                    <p>Gracias por tu compra. Puedes cerrar esta ventana.</p>
+                </body></html>
+            """, 200
+        else:
+            logging.error(payment.error)
+            return "❌ Error al ejecutar el pago.", 400
+    except Exception as e:
+        logging.error(f"Error en /success: {e}")
+        return "❌ Error interno.", 500
+
+@app.route("/cancel")
+def cancel():
+    usuario_id = request.args.get("usuario_id")
+
+    if usuario_id:
+        run_async(application.bot.send_message(
+            chat_id=int(usuario_id),
+            text="❌ Cancelaste el pago. Si fue un error, usa /comprar para intentarlo de nuevo."
+        ))
+
+    return """
+        <html><body style="font-family:sans-serif; text-align:center; padding:50px;">
+            <h2>❌ Pago cancelado</h2>
+            <p>Puedes cerrar esta ventana y volver al bot.</p>
+        </body></html>
+    """, 200
 
 @app.route("/paypal", methods=["POST"])
 def paypal_webhook():
