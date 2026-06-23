@@ -125,9 +125,8 @@ application.add_handler(CommandHandler("comprar", comprar))
 application.add_handler(CommandHandler("ayuda", ayuda))
 application.add_handler(CallbackQueryHandler(manejar_boton))
 
-# Inicializamos y arrancamos la aplicación en segundo plano
+# Inicializamos la aplicación (solo initialize, sin start para evitar warnings de polling)
 asyncio.run(application.initialize())
-asyncio.run(application.start())
 
 # ---------------- WEBHOOKS ----------------
 
