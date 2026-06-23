@@ -178,14 +178,14 @@ async def enviar_contenido(usuario_id: str, monto: str):
             chat_id=uid,
             text="✅ ¡Pago recibido! Aquí está tu paquete de $6 💕"
         )
-        await _enviar_archivos(uid, "contenido6")
+        await _enviar_archivos(uid, "contenido/precio6")
 
     elif monto == "9":
         await application.bot.send_message(
             chat_id=uid,
             text="✅ ¡Pago recibido! Aquí está tu paquete de $9 💕"
         )
-        await _enviar_archivos(uid, "contenido9")
+        await _enviar_archivos(uid, "contenido/precio9")
 
     elif monto == "13":
         await application.bot.send_message(
