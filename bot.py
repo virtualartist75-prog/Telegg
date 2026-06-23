@@ -8,15 +8,21 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 from telegram.request import HTTPXRequest
 
-# Variables de entorno
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "7078845937"))
+# ─── VARIABLES DE ENTORNO ───────────────────────────────────────────────────
+BOT_TOKEN    = os.getenv("BOT_TOKEN")
+ADMIN_ID     = int(os.getenv("ADMIN_ID", "7078845937"))
 PP_CLIENT_ID = os.getenv("PP_CLIENT_ID")
-PP_SECRET = os.getenv("PP_SECRET")
-BASE_URL = os.getenv("BASE_URL", "https://abc123.ngrok.io")  # ← Cambia esto por tu URL
+PP_SECRET    = os.getenv("PP_SECRET")
+
+# ┌─────────────────────────────────────────────────────────────────┐
+# │  BASE_URL: pon aquí la URL que te da ngrok cada vez que lo      │
+# │  inicias. Ejemplo: "https://abc123.ngrok-free.app"              │
+# │  O define la variable de entorno BASE_URL en tu sistema.        │
+# └─────────────────────────────────────────────────────────────────┘
+BASE_URL = os.getenv("BASE_URL", "https://telegg-wz7c.onrender.com")
 
 paypalrestsdk.configure({
-    "mode": "sandbox",  # Cambia a "live" en producción
+    "mode": "sandbox",   # ← Cambia a "live" cuando vayas a producción
     "client_id": PP_CLIENT_ID,
     "client_secret": PP_SECRET
 })
@@ -25,6 +31,7 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 # ─── EVENT LOOP DEDICADO ────────────────────────────────────────────────────
+# Un loop propio en un hilo aparte para que Flask pueda llamar código async
 
 loop = asyncio.new_event_loop()
 
@@ -39,24 +46,25 @@ def run_async(coro):
     future = asyncio.run_coroutine_threadsafe(coro, loop)
     return future.result(timeout=30)
 
-# ─── BOT ────────────────────────────────────────────────────────────────────
+# ─── COMANDOS DEL BOT ───────────────────────────────────────────────────────
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "💕 Bienvenid@ a mi bot de contenido 💕\n\n"
-        "/catalogo - Ver catálogo\n/comprar - Comprar paquetes\n/ayuda - Contacto"
+        "/catalogo - Ver catálogo\n"
+        "/comprar  - Comprar paquetes\n"
+        "/ayuda    - Contacto"
     )
 
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    mensaje = (
+    await update.message.reply_text(
         "CATÁLOGO\n\n"
-        "⭐ $6 por 10 fotos y 5 videos ⭐\n"
-        "💕 $9 por 25 fotos y 15 videos 💕\n"
-        "✨ $13 acceso especial ✨\n"
-        "🌟 $15 canal VIP 🌟\n\n"
+        "⭐ $6  — 10 fotos y 5 videos\n"
+        "💕 $9  — 25 fotos y 15 videos\n"
+        "✨ $13 — Acceso especial\n"
+        "🌟 $15 — Canal VIP\n\n"
         "Usa /comprar para generar tu link de pago."
     )
-    await update.message.reply_text(mensaje)
 
 async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
@@ -77,6 +85,7 @@ async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ─── PAYPAL ─────────────────────────────────────────────────────────────────
 
 def crear_pago(monto, descripcion, usuario_id):
+    """Crea un pago en PayPal y devuelve la URL de aprobación."""
     return_url = f"{BASE_URL}/success?usuario_id={usuario_id}&monto={monto}"
     cancel_url  = f"{BASE_URL}/cancel?usuario_id={usuario_id}"
 
@@ -97,7 +106,8 @@ def crear_pago(monto, descripcion, usuario_id):
         for link in pago.links:
             if link.rel == "approval_url":
                 return str(link.href)
-    logging.error(pago.error)
+
+    logging.error(f"Error creando pago PayPal: {pago.error}")
     return None
 
 async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -114,14 +124,20 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     if link:
-        await context.bot.send_message(chat_id=usuario_id,
-                                       text=f"✅ Paga aquí:\n{link}")
-        await context.bot.send_message(chat_id=ADMIN_ID,
-                                       text=f"🔗 Link generado para cliente {usuario_id}: {link}")
+        await context.bot.send_message(
+            chat_id=usuario_id,
+            text=f"✅ Paga aquí:\n{link}"
+        )
+        await context.bot.send_message(
+            chat_id=ADMIN_ID,
+            text=f"🔗 Link generado\nCliente ID: {usuario_id}\nPaquete: ${precio}\n{link}"
+        )
         await query.edit_message_text(f"Link de pago generado para paquete ${precio}.")
     else:
-        await context.bot.send_message(chat_id=usuario_id,
-                                       text="❌ Error generando link de pago.")
+        await context.bot.send_message(
+            chat_id=usuario_id,
+            text="❌ Error generando link de pago. Intenta de nuevo o contacta @Sofi_ly19."
+        )
 
 # ─── APPLICATION ────────────────────────────────────────────────────────────
 
@@ -130,31 +146,33 @@ application = (
     Application.builder()
     .token(BOT_TOKEN)
     .request(http_request)
-    .updater(None)          # Sin polling; solo webhook
+    .updater(None)   # Sin polling; usamos webhook
     .build()
 )
-application.add_handler(CommandHandler("start", start))
+application.add_handler(CommandHandler("start",    start))
 application.add_handler(CommandHandler("catalogo", catalogo))
-application.add_handler(CommandHandler("comprar", comprar))
-application.add_handler(CommandHandler("ayuda", ayuda))
+application.add_handler(CommandHandler("comprar",  comprar))
+application.add_handler(CommandHandler("ayuda",    ayuda))
 application.add_handler(CallbackQueryHandler(manejar_boton))
 
 run_async(application.initialize())
 run_async(application.start())
 
-# ─── WEBHOOKS ───────────────────────────────────────────────────────────────
+# ─── RUTAS FLASK ────────────────────────────────────────────────────────────
 
 @app.route("/")
 def home():
-    return "Bot activo", 200
+    return "Bot activo ✅", 200
 
+# Recibe los updates de Telegram
 @app.route("/telegram", methods=["POST"])
 def telegram_webhook():
-    data = request.get_json(force=True)
+    data   = request.get_json(force=True)
     update = Update.de_json(data, application.bot)
     run_async(application.process_update(update))
     return "OK", 200
 
+# PayPal redirige aquí tras un pago exitoso
 @app.route("/success")
 def success():
     payment_id = request.args.get("paymentId")
@@ -167,31 +185,42 @@ def success():
 
     try:
         payment = paypalrestsdk.Payment.find(payment_id)
+
         if payment.execute({"payer_id": payer_id}):
-            # Notificar al comprador
+            # Avisar al comprador
             if usuario_id:
                 run_async(application.bot.send_message(
                     chat_id=int(usuario_id),
                     text="✅ ¡Pago recibido! Gracias por tu compra 💕\nEn breve me pondré en contacto contigo."
                 ))
-            # Notificar al admin
+            # Avisar al admin
             run_async(application.bot.send_message(
                 chat_id=ADMIN_ID,
-                text=f"💰 ¡Venta confirmada!\nCliente ID: {usuario_id}\nMonto: ${monto} USD\nPayment ID: {payment_id}"
+                text=(
+                    f"💰 ¡Venta confirmada!\n"
+                    f"Cliente ID: {usuario_id}\n"
+                    f"Monto: ${monto} USD\n"
+                    f"Payment ID: {payment_id}"
+                )
             ))
             return """
-                <html><body style="font-family:sans-serif; text-align:center; padding:50px;">
-                    <h2>✅ ¡Pago completado!</h2>
-                    <p>Gracias por tu compra. Puedes cerrar esta ventana.</p>
-                </body></html>
+                <html>
+                <body style="font-family:sans-serif;text-align:center;padding:60px;background:#fff0f5;">
+                    <h2 style="color:#d63384;">✅ ¡Pago completado!</h2>
+                    <p>Gracias por tu compra 💕<br>Puedes cerrar esta ventana y volver al bot.</p>
+                </body>
+                </html>
             """, 200
+
         else:
-            logging.error(payment.error)
+            logging.error(f"Error ejecutando pago: {payment.error}")
             return "❌ Error al ejecutar el pago.", 400
+
     except Exception as e:
-        logging.error(f"Error en /success: {e}")
+        logging.error(f"Excepción en /success: {e}")
         return "❌ Error interno.", 500
 
+# PayPal redirige aquí si el usuario cancela
 @app.route("/cancel")
 def cancel():
     usuario_id = request.args.get("usuario_id")
@@ -203,20 +232,23 @@ def cancel():
         ))
 
     return """
-        <html><body style="font-family:sans-serif; text-align:center; padding:50px;">
-            <h2>❌ Pago cancelado</h2>
+        <html>
+        <body style="font-family:sans-serif;text-align:center;padding:60px;background:#fff0f5;">
+            <h2 style="color:#d63384;">❌ Pago cancelado</h2>
             <p>Puedes cerrar esta ventana y volver al bot.</p>
-        </body></html>
+        </body>
+        </html>
     """, 200
 
+# Webhook de eventos de PayPal (opcional, para notificaciones automáticas)
 @app.route("/paypal", methods=["POST"])
 def paypal_webhook():
-    data = request.json
+    data       = request.json
     event_type = data.get("event_type")
 
     if event_type == "PAYMENT.CAPTURE.COMPLETED":
         cliente_id = data["resource"]["payer"]["payer_id"]
-        monto = data["resource"]["amount"]["value"]
+        monto      = data["resource"]["amount"]["value"]
         run_async(application.bot.send_message(
             chat_id=ADMIN_ID,
             text=f"✅ Venta realizada\nCliente PayPal: {cliente_id}\nMonto: {monto} USD"
@@ -235,4 +267,5 @@ def paypal_webhook():
 
 if __name__ == "__main__":
     print("Bot con webhook iniciado...")
+    print(f"BASE_URL configurada: {BASE_URL}")
     app.run(host="0.0.0.0", port=int(os.getenv("PORT", "5000")))
