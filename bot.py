@@ -2,6 +2,8 @@ import os
 import logging
 import asyncio
 import threading
+import urllib.request
+import json
 from flask import Flask, request
 import paypalrestsdk
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
@@ -135,44 +137,54 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ─── ENVÍO AUTÓNOMO DE CONTENIDO ────────────────────────────────────────────
 
-async def _enviar_archivos(usuario_id: int, carpeta: str):
-    """Envía todos los archivos de una carpeta al usuario."""
-    base = os.path.dirname(os.path.abspath(__file__))
-    ruta = os.path.join(base, carpeta)
-    logging.info(f"Buscando contenido en: {ruta}")
+GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/contents/contenido"
 
-    if not os.path.exists(ruta):
-        logging.error(f"Carpeta no encontrada: {ruta}")
+async def _enviar_archivos(usuario_id: int, carpeta: str):
+    """Descarga y envía archivos desde GitHub al usuario."""
+    url_api = f"{GITHUB_API_BASE}/{carpeta}"
+    logging.info(f"Consultando GitHub API: {url_api}")
+
+    try:
+        with urllib.request.urlopen(url_api, timeout=15) as resp:
+            archivos = json.loads(resp.read().decode())
+    except Exception as e:
+        logging.error(f"Error leyendo carpeta GitHub: {e}")
         await application.bot.send_message(
             chat_id=usuario_id,
             text="❌ Error al cargar el contenido. Contacta @Sofi_ly19."
         )
         return
 
-    archivos = sorted([f for f in os.listdir(ruta) if not f.startswith(".")])
+    archivos = [f for f in archivos if f.get("download_url") and not f["name"].startswith(".")]
+
     if not archivos:
-        logging.warning(f"Carpeta vacía: {ruta}")
         await application.bot.send_message(
             chat_id=usuario_id,
             text="❌ No hay archivos disponibles aún. Contacta @Sofi_ly19."
         )
         return
 
-    for nombre in archivos:
-        ruta_archivo = os.path.join(ruta, nombre)
-        if not os.path.isfile(ruta_archivo):
-            continue
-        ext = nombre.lower().rsplit(".", 1)[-1]
+    for item in archivos:
+        nombre   = item["name"]
+        enlace   = item["download_url"]
+        ext      = nombre.lower().rsplit(".", 1)[-1]
         try:
-            with open(ruta_archivo, "rb") as f:
-                if ext in ("jpg", "jpeg", "png", "webp"):
-                    await application.bot.send_photo(chat_id=usuario_id, photo=f)
-                elif ext in ("mp4", "mov", "avi"):
-                    await application.bot.send_video(chat_id=usuario_id, video=f)
-                else:
-                    await application.bot.send_document(chat_id=usuario_id, document=f)
+            with urllib.request.urlopen(enlace, timeout=30) as f:
+                data = f.read()
+
+            if ext in ("jpg", "jpeg", "png", "webp"):
+                await application.bot.send_photo(chat_id=usuario_id, photo=data)
+            elif ext in ("mp4", "mov", "avi", "mkv"):
+                await application.bot.send_video(chat_id=usuario_id, video=data)
+            else:
+                await application.bot.send_document(chat_id=usuario_id, document=data)
+
         except Exception as e:
             logging.error(f"Error enviando {nombre}: {e}")
+            await application.bot.send_message(
+                chat_id=usuario_id,
+                text=f"❌ Error enviando {nombre}."
+            )
 
 async def enviar_contenido(usuario_id: str, monto: str):
     """Envía el contenido correspondiente al paquete comprado."""
@@ -183,14 +195,14 @@ async def enviar_contenido(usuario_id: str, monto: str):
             chat_id=uid,
             text="✅ ¡Pago recibido! Aquí está tu paquete de $6 💕"
         )
-        await _enviar_archivos(uid, "contenido/precio6")
+        await _enviar_archivos(uid, "precio6")
 
     elif monto == "9":
         await application.bot.send_message(
             chat_id=uid,
             text="✅ ¡Pago recibido! Aquí está tu paquete de $9 💕"
         )
-        await _enviar_archivos(uid, "contenido/precio9")
+        await _enviar_archivos(uid, "precio9")
 
     elif monto == "13":
         await application.bot.send_message(
