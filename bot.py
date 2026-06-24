@@ -77,7 +77,7 @@ async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def ayuda(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Contacta conmigo @Sofi_ly19 si tienes dudas.")
+    await update.message.reply_text("Contacta conmigo @Sofily19 si tienes dudas.")
 
 # ─── PAYPAL ─────────────────────────────────────────────────────────────────
 
@@ -132,12 +132,12 @@ async def manejar_boton(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await context.bot.send_message(
             chat_id=usuario_id,
-            text="❌ Error generando link de pago. Intenta de nuevo o contacta @Sofi_ly19."
+            text="❌ Error generando link de pago. Intenta de nuevo o contacta @Sofily19."
         )
 
 # ─── ENVÍO AUTÓNOMO DE CONTENIDO ────────────────────────────────────────────
 
-GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/contents/contenido"
+GITHUB_API_BASE = "https://api.github.com/repos/virtualartist75-prog/Telegg/contents/contenido/contenido"
 
 async def _enviar_archivos(usuario_id: int, carpeta: str):
     """Descarga y envía archivos desde GitHub al usuario."""
@@ -151,7 +151,7 @@ async def _enviar_archivos(usuario_id: int, carpeta: str):
         logging.error(f"Error leyendo carpeta GitHub: {e}")
         await application.bot.send_message(
             chat_id=usuario_id,
-            text="❌ Error al cargar el contenido. Contacta @Sofi_ly19."
+            text="❌ Error al cargar el contenido. Contacta @Sofily19."
         )
         return
 
@@ -160,7 +160,7 @@ async def _enviar_archivos(usuario_id: int, carpeta: str):
     if not archivos:
         await application.bot.send_message(
             chat_id=usuario_id,
-            text="❌ No hay archivos disponibles aún. Contacta @Sofi_ly19."
+            text="❌ No hay archivos disponibles aún. Contacta @Sofily19."
         )
         return
 
