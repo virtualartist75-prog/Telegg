@@ -56,10 +56,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "CATÁLOGO\n\n"
+        "✨ $3 — 5 fotos y 1 video\n"
         "⭐ $6  — 10 fotos y 5 videos\n"
         "💕 $9  — 25 fotos y 15 videos\n"
-        "✨ $13 — Acceso especial\n"
-        "🌟 $15 — Canal VIP\n\n"
+        "🌟 $12 — Canal VIP 100 fotos y 30 videos\n"
         "Usa /comprar para generar tu link de pago."
     )
 
