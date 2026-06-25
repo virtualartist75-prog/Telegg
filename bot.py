@@ -56,20 +56,20 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "CATÁLOGO\n\n"
-        "✨ $3 — 5 fotos y 1 video\n"
+        "✨ $3  — 5 fotos y 1 video\n"
         "⭐ $6  — 10 fotos y 5 videos\n"
         "💕 $9  — 25 fotos y 15 videos\n"
-        "🌟 $12 — Canal VIP 100 fotos y 30 videos\n"
+        "🌟 $12 — Canal VIP 100 fotos y 30 videos\n\n"
         "Usa /comprar para generar tu link de pago."
     )
 
 async def comprar(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
     teclado = [
-        [InlineKeyboardButton("$6",  callback_data=f"paypal:6:{uid}"),
-         InlineKeyboardButton("$9",  callback_data=f"paypal:9:{uid}")],
-        [InlineKeyboardButton("$13", callback_data=f"paypal:13:{uid}"),
-         InlineKeyboardButton("$15", callback_data=f"paypal:15:{uid}")]
+        [InlineKeyboardButton("$3",  callback_data=f"paypal:3:{uid}"),
+         InlineKeyboardButton("$6",  callback_data=f"paypal:6:{uid}")],
+        [InlineKeyboardButton("$9",  callback_data=f"paypal:9:{uid}"),
+         InlineKeyboardButton("$12", callback_data=f"paypal:12:{uid}")]
     ]
     await update.message.reply_text(
         "Selecciona tu paquete:",
@@ -165,9 +165,9 @@ async def _enviar_archivos(usuario_id: int, carpeta: str):
         return
 
     for item in archivos:
-        nombre   = item["name"]
-        enlace   = item["download_url"]
-        ext      = nombre.lower().rsplit(".", 1)[-1]
+        nombre = item["name"]
+        enlace = item["download_url"]
+        ext    = nombre.lower().rsplit(".", 1)[-1]
         try:
             with urllib.request.urlopen(enlace, timeout=30) as f:
                 data = f.read()
@@ -190,10 +190,17 @@ async def enviar_contenido(usuario_id: str, monto: str):
     """Envía el contenido correspondiente al paquete comprado."""
     uid = int(usuario_id)
 
-    if monto == "6":
+    if monto == "3":
         await application.bot.send_message(
             chat_id=uid,
-            text="✅ ¡Pago recibido! Aquí está tu paquete de $6 💕"
+            text="✅ ¡Pago recibido! Aquí está tu paquete de $3 ✨"
+        )
+        await _enviar_archivos(uid, "precio3")
+
+    elif monto == "6":
+        await application.bot.send_message(
+            chat_id=uid,
+            text="✅ ¡Pago recibido! Aquí está tu paquete de $6 ⭐"
         )
         await _enviar_archivos(uid, "precio6")
 
@@ -204,13 +211,7 @@ async def enviar_contenido(usuario_id: str, monto: str):
         )
         await _enviar_archivos(uid, "precio9")
 
-    elif monto == "13":
-        await application.bot.send_message(
-            chat_id=uid,
-            text="✅ ¡Pago recibido!\n\nTEST COMPLETADO ✨"
-        )
-
-    elif monto == "15":
+    elif monto == "12":
         await application.bot.send_message(
             chat_id=uid,
             text=(
@@ -276,7 +277,7 @@ def success():
     try:
         payment = paypalrestsdk.Payment.find(payment_id)
 
-        # Si el pago ya está aprobado en PayPal, no intentar ejecutarlo de nuevo
+        # Si el pago ya está aprobado en PayPal, no ejecutarlo de nuevo
         if payment.state == "approved":
             pagos_procesados.add(payment_id)
             if usuario_id and monto:
