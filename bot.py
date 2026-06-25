@@ -18,7 +18,7 @@ PP_SECRET    = os.getenv("PP_SECRET")
 BASE_URL     = os.getenv("BASE_URL", "https://telegg-wz7c.onrender.com")
 
 paypalrestsdk.configure({
-    "mode": "sandbox",   # <- Cambia a "live" en producción
+    "mode": "live",
     "client_id": PP_CLIENT_ID,
     "client_secret": PP_SECRET
 })
@@ -56,10 +56,10 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def catalogo(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "CATÁLOGO\n\n"
-        "🔥 $3  — 5 fotos y 1 video🔥\n\n"
-        "⭐ $6  — 10 fotos y 5 videos⭐\n\n"
-        "💕 $9  — 25 fotos y 15 videos💕\n\n"
-        "💎 $12 — Canal VIP 100 fotos y 30 videos💎\n\n"
+        "✨ $3  — 5 fotos y 1 video\n"
+        "⭐ $6  — 10 fotos y 5 videos\n"
+        "💕 $9  — 25 fotos y 15 videos\n"
+        "🌟 $12 — Canal VIP 100 fotos y 30 videos\n\n"
         "Usa /comprar para generar tu link de pago."
     )
 
